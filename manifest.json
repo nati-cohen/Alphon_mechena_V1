@@ -1,0 +1,23 @@
+{
+  "name": "אלפון מכינת בית אל",
+  "short_name": "אלפון מכינה",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "he",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/6QtbGKVS/lwgw-mkynh.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://i.postimg.cc/6QtbGKVS/lwgw-mkynh.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
