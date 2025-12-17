@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { XIcon, WrenchIcon, CalendarIcon, MailIcon, ChevronLeftIcon } from './Icons';
+import { XIcon, WrenchIcon, CalendarIcon, MailIcon, ChevronLeftIcon, HeartIcon, MoonIcon, SunIcon, CreditCardIcon, BankIcon, CashIcon } from './Icons';
 import { APP_CONFIG } from '../constants';
 
 interface SidebarProps {
@@ -9,12 +9,31 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const [showSchedule, setShowSchedule] = useState(false);
+  const [showDonation, setShowDonation] = useState(false);
   const [zoom, setZoom] = useState(1);
   const pinchRef = useRef({ startDist: 0, startZoom: 1 });
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    // Sync local state with document class
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDark(true);
+    }
+  };
 
   // Prevent background scrolling when menu or modal is open
   useEffect(() => {
-    if (isOpen || showSchedule) {
+    if (isOpen || showSchedule || showDonation) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -22,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, showSchedule]);
+  }, [isOpen, showSchedule, showDonation]);
 
   // Reset zoom when opening/closing
   useEffect(() => {
@@ -33,6 +52,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     onClose();
     setShowSchedule(true);
+  };
+
+  const handleDonationClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onClose();
+    setShowDonation(true);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -60,30 +85,120 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const menuItems = [
     {
       label: 'טופס תיקונים',
-      url: 'https://did.li/takalut-mechina',
+      url: 'https://www.ybe.org.il/%D7%9E%D7%9B%D7%99%D7%A0%D7%AA-%D7%91%D7%99%D7%AA-%D7%90%D7%9C',
       icon: <WrenchIcon className="w-5 h-5 text-blue-500" />,
-      color: 'bg-blue-50',
+      color: 'bg-blue-50 dark:bg-blue-900/30',
       isExternal: true
     },
     {
       label: 'לו"ז שבועי',
       url: '#',
       icon: <CalendarIcon className="w-5 h-5 text-purple-500" />,
-      color: 'bg-purple-50',
+      color: 'bg-purple-50 dark:bg-purple-900/30',
       isExternal: false,
       onClick: handleScheduleClick
+    },
+    {
+      label: 'תרומה למכינה',
+      url: '#',
+      icon: <HeartIcon className="w-5 h-5 text-red-500" />,
+      color: 'bg-red-50 dark:bg-red-900/30',
+      isExternal: false,
+      onClick: handleDonationClick
     },
     {
       label: 'צור קשר',
       url: 'https://did.li/Contact-us1',
       icon: <MailIcon className="w-5 h-5 text-green-500" />,
-      color: 'bg-green-50',
+      color: 'bg-green-50 dark:bg-green-900/30',
       isExternal: true
     }
   ];
 
   return (
     <>
+      {/* Donation Modal */}
+      {showDonation && (
+        <div 
+          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setShowDonation(false)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setShowDonation(false)}
+              className="absolute top-4 right-4 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              <XIcon className="w-6 h-6" />
+            </button>
+
+            <div className="text-center mb-6 mt-2">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3 text-red-600 dark:text-red-400">
+                <HeartIcon className="w-8 h-8 fill-current" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">דרכי תרומה למכינה</h2>
+            </div>
+
+            <div className="space-y-4">
+              {/* Credit / Bit */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-lg text-blue-600 dark:text-blue-300">
+                    <CreditCardIcon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 dark:text-white">באשראי ובביט</h3>
+                </div>
+                <a 
+                  href="https://bit.ly/תרומה-לישיבת-בית-אל" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2.5 rounded-lg font-medium transition-colors"
+                >
+                  מעבר לתשלום מאובטח
+                </a>
+              </div>
+
+              {/* Bank Transfer */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-purple-100 dark:bg-purple-900/40 p-2 rounded-lg text-purple-600 dark:text-purple-300">
+                    <BankIcon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 dark:text-white">בהעברה בנקאית</h3>
+                </div>
+                <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300 pr-2">
+                  <p><span className="font-semibold text-gray-800 dark:text-white">שם החשבון:</span> קרית הישיבה בית אל</p>
+                  <p><span className="font-semibold text-gray-800 dark:text-white">בנק:</span> יובנק (26)</p>
+                  <p><span className="font-semibold text-gray-800 dark:text-white">סניף:</span> 288</p>
+                  <p><span className="font-semibold text-gray-800 dark:text-white">מספר חשבון:</span> 320196</p>
+                </div>
+              </div>
+
+              {/* Check / Cash */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-green-100 dark:bg-green-900/40 p-2 rounded-lg text-green-600 dark:text-green-300">
+                    <CashIcon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 dark:text-white">צ'ק ומזומן</h3>
+                </div>
+                <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300 pr-2">
+                  <p>לפקודת קרית הישיבה בית אל</p>
+                  <p>במזכירות הישיבה אצל חזקי:</p>
+                  <a href="tel:0546970560" className="text-blue-600 dark:text-blue-400 hover:underline font-bold dir-ltr block text-right">054-697-0560</a>
+                </div>
+              </div>
+
+              <div className="text-center text-xs text-gray-400 dark:text-gray-500 pt-2">
+                כל התרומות מוכרות לצרכי מס לפי סעיף 46
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Schedule Modal */}
       {showSchedule && (
         <div 
@@ -117,7 +232,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           
           {zoom <= 1 && (
             <div className="absolute bottom-10 text-white/50 text-sm pointer-events-none">
-              ניתן להגדיל עם שתי אצבעות
+              ניתן להגדיל עם האצבעות
             </div>
           )}
         </div>
@@ -134,16 +249,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar Panel */}
       <div 
-        className={`fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-72 bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <h2 className="text-xl font-bold text-gray-800">{APP_CONFIG.NAME}</h2>
+        <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white">{APP_CONFIG.NAME}</h2>
           <button 
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
           >
             <XIcon className="w-6 h-6" />
           </button>
@@ -159,22 +274,42 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 target={item.isExternal ? "_blank" : undefined}
                 rel={item.isExternal ? "noopener noreferrer" : undefined}
                 onClick={item.onClick || onClose}
-                className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all group cursor-pointer"
+                className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent hover:border-gray-100 dark:hover:border-gray-600 transition-all group cursor-pointer"
               >
                 <div className={`p-2.5 rounded-full ${item.color} group-hover:scale-110 transition-transform`}>
                   {item.icon}
                 </div>
                 <div className="flex-1">
-                  <span className="font-bold text-gray-700 block text-lg">{item.label}</span>
+                  <span className="font-bold text-gray-700 dark:text-gray-200 block text-lg">{item.label}</span>
                 </div>
-                <ChevronLeftIcon className="w-5 h-5 text-gray-300 group-hover:text-gray-400" />
+                <ChevronLeftIcon className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-400" />
               </a>
             ))}
           </nav>
+
+          <hr className="my-6 border-gray-100 dark:border-gray-700" />
+
+          {/* Dark Mode Toggle */}
+          <button 
+            onClick={toggleTheme}
+            className="w-full flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+             <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-orange-100 text-orange-500'}`}>
+                  {isDark ? <MoonIcon className="w-5 h-5" /> : <SunIcon className="w-5 h-5" />}
+                </div>
+                <span className="font-bold text-gray-700 dark:text-gray-200">
+                  {isDark ? 'מצב כהה' : 'מצב בהיר'}
+                </span>
+             </div>
+             <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}>
+               <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ease-in-out ${isDark ? '-translate-x-6' : 'translate-x-0'}`} />
+             </div>
+          </button>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-100 text-center text-xs text-gray-400">
+        <div className="p-4 border-t border-gray-100 dark:border-gray-700 text-center text-xs text-gray-400 dark:text-gray-500">
            גרסה 1.0.0
         </div>
       </div>

@@ -20,7 +20,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
 
   if (!student) {
     return (
-      <div className="h-screen flex items-center justify-center text-gray-500">
+      <div className="h-screen flex items-center justify-center text-gray-500 dark:text-gray-400">
         טוען תלמיד...
       </div>
     );
@@ -46,20 +46,20 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-white p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-200">
+      <div className="bg-white dark:bg-gray-800 p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10 transition-colors">
         <button 
           onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
-          <ArrowRightIcon className="w-6 h-6 text-gray-700" />
+          <ArrowRightIcon className="w-6 h-6 text-gray-700 dark:text-gray-200" />
         </button>
-        <h2 className="text-xl font-bold text-gray-800">פרטי תלמיד</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">פרטי תלמיד</h2>
       </div>
 
       <div className="flex-1 p-6 flex flex-col items-center animate-fadeIn">
         <div className="relative mb-6">
-          <div className="w-32 h-32 rounded-full p-1 bg-white shadow-lg">
+          <div className="w-32 h-32 rounded-full p-1 bg-white dark:bg-gray-800 shadow-lg">
              <img 
               src={student.image_url} 
               alt={student.full_name} 
@@ -71,55 +71,55 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-1 text-center">{student.full_name}</h1>
-        <div className="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-medium mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1 text-center">{student.full_name}</h1>
+        <div className="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 px-4 py-1 rounded-full text-sm font-medium mb-8">
           {student.class}
         </div>
 
         <div className="grid grid-cols-3 gap-4 w-full max-w-md mb-8">
           <button 
             onClick={handleCall}
-            className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition-transform"
+            className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
           >
-            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
               <PhoneIcon className="w-6 h-6" />
             </div>
-            <span className="text-sm font-medium text-gray-600">חיוג</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">חיוג</span>
           </button>
 
           <button 
             onClick={handleWhatsApp}
-            className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition-transform"
+            className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
           >
             <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white">
               <WhatsappIcon className="w-6 h-6" />
             </div>
-            <span className="text-sm font-medium text-gray-600">וואטסאפ</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">וואטסאפ</span>
           </button>
 
           <button 
             onClick={handleCopy}
-            className="relative flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition-transform"
+            className="relative flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
           >
-             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+             <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
               <CopyIcon className="w-6 h-6" />
             </div>
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
               {copyFeedback ? 'הועתק!' : 'העתק'}
             </span>
           </button>
         </div>
 
         <div className="w-full max-w-md space-y-4">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">מספר טלפון</label>
-             <p className="text-lg font-medium text-gray-800 dir-ltr text-right">{student.phone_number}</p>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
+             <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">מספר טלפון</label>
+             <p className="text-lg font-medium text-gray-800 dark:text-gray-100 dir-ltr text-right">{student.phone_number}</p>
           </div>
 
           {student.notes && (
-             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">הערות</label>
-                <p className="text-base text-gray-700 leading-relaxed">{student.notes}</p>
+             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
+                <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">הערות</label>
+                <p className="text-base text-gray-700 dark:text-gray-200 leading-relaxed">{student.notes}</p>
              </div>
           )}
         </div>
