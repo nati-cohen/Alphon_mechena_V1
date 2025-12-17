@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { XIcon } from './Icons';
+import { XIcon, MoreVerticalIcon } from './Icons';
 
 // Helper to check if the app is already installed
 const isStandalone = () => {
@@ -24,13 +24,19 @@ const InstallPwa: React.FC = () => {
     const hasClosed = sessionStorage.getItem('pwa-prompt-closed');
     if (hasClosed) return;
 
+    // Timer to force show the modal if the browser doesn't trigger the event automatically
+    // This handles cases like Dev mode, non-supported browsers, or if the user ignored it before
+    const timer = setTimeout(() => {
+      setShowModal(true);
+    }, 2500);
+
     // Android / Desktop PWA prompt
     const handler = (e: any) => {
       e.preventDefault();
       setSupportsPWA(true);
       setPromptInstall(e);
-      // Small delay to allow app to load first
-      setTimeout(() => setShowModal(true), 1500);
+      setShowModal(true);
+      clearTimeout(timer); // Event received, no need to force
     };
     window.addEventListener('beforeinstallprompt', handler);
 
@@ -38,10 +44,12 @@ const InstallPwa: React.FC = () => {
     const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     if (isIosDevice) {
       setIsIOS(true);
-      setTimeout(() => setShowModal(true), 1500);
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      clearTimeout(timer);
+    };
   }, []);
 
   const handleClose = () => {
@@ -95,6 +103,7 @@ const InstallPwa: React.FC = () => {
              התקן את אלפון מכינת בית אל לגישה מהירה ונוחה ישירות ממסך הבית שלך
            </p>
 
+           {/* Case 1: Browser supports automatic install (Chrome Android mostly) */}
            {supportsPWA && (
              <button
                onClick={handleInstallClick}
@@ -107,7 +116,8 @@ const InstallPwa: React.FC = () => {
              </button>
            )}
 
-           {isIOS && (
+           {/* Case 2: iOS Manual Instructions */}
+           {isIOS && !supportsPWA && (
              <div className="w-full bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-4 text-sm text-gray-600 dark:text-gray-300 text-right">
                 <div className="flex items-center gap-3 mb-3">
                    <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 bg-white dark:bg-gray-600 rounded-lg shadow-sm font-bold text-blue-600 dark:text-blue-300">1</span>
@@ -119,6 +129,21 @@ const InstallPwa: React.FC = () => {
                 </div>
              </div>
            )}
+
+           {/* Case 3: Android/Chrome Manual Instructions (if auto-install fails) */}
+           {!supportsPWA && !isIOS && (
+             <div className="w-full bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-4 text-sm text-gray-600 dark:text-gray-300 text-right">
+                <div className="flex items-center gap-3 mb-3">
+                   <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 bg-white dark:bg-gray-600 rounded-lg shadow-sm font-bold text-blue-600 dark:text-blue-300">1</span>
+                   <span>לחץ על כפתור התפריט <span className="inline-block align-middle mx-1 bg-white dark:bg-gray-600 rounded p-0.5"><MoreVerticalIcon className="w-3.5 h-3.5" /></span> בדפדפן</span>
+                </div>
+                <div className="flex items-center gap-3">
+                   <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 bg-white dark:bg-gray-600 rounded-lg shadow-sm font-bold text-blue-600 dark:text-blue-300">2</span>
+                   <span>בחר ב-<strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong></span>
+                </div>
+             </div>
+           )}
+
         </div>
       </div>
     </div>

@@ -54,7 +54,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
         >
           <ArrowRightIcon className="w-6 h-6 text-gray-700 dark:text-gray-200" />
         </button>
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">פרטי תלמיד</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">פרטי איש קשר</h2>
       </div>
 
       <div className="flex-1 p-6 flex flex-col items-center animate-fadeIn">
