@@ -1,3 +1,4 @@
+
 // ---------------------------------------------------------------------------
 // CONFIGURATION
 // ---------------------------------------------------------------------------
@@ -9,10 +10,6 @@ export const APP_CONFIG = {
 };
 
 // Google Sheet CSV Export URL
-// To update this:
-// 1. Open your Google Sheet
-// 2. Go to File -> Share -> Share with others -> Anyone with the link -> Viewer
-// 3. Use the ID from your URL in the format below
 export const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1wQY8SQy55j-JIQeLs_hFtRc2689L-sSYNBWI3Yngvls/export?format=csv"; 
 
 export const SHEET_HEADERS = {
@@ -21,6 +18,7 @@ export const SHEET_HEADERS = {
   IMAGE: 'image_url',
   CLASS: 'class',
   NOTES: 'notes',
+  BIRTHDAY: 'יום הולדת', // הכותרת ב-Google Sheet כפי שביקשת
 };
 
 // Default placeholder image if none provided

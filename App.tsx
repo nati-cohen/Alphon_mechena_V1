@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { fetchStudents } from './services/dataService';
 import { Student } from './types';
 import StudentList from './components/StudentList';
 import StudentDetail from './components/StudentDetail';
+import BirthdayPage from './components/BirthdayPage';
 import InstallPwa from './components/InstallPwa';
 
 const App: React.FC = () => {
@@ -71,6 +73,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<StudentList students={students} />} />
           <Route path="/student/:id" element={<StudentDetail students={students} />} />
+          <Route path="/birthdays" element={<BirthdayPage students={students} />} />
         </Routes>
         <InstallPwa />
       </div>

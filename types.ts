@@ -1,3 +1,4 @@
+
 export interface Student {
   id: string;
   full_name: string;
@@ -5,6 +6,7 @@ export interface Student {
   image_url: string;
   class: string;
   notes: string;
+  birthday_hebrew?: string; // חודש יום ההולדת בעברית
 }
 
 export interface GoogleSheetRow {
@@ -13,6 +15,7 @@ export interface GoogleSheetRow {
   image_url: string;
   class: string;
   notes: string;
+  birthday_hebrew: string;
 }
 
 export interface AppState {

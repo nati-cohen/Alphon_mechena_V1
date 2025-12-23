@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Student } from '../types';
-import { PhoneIcon, WhatsappIcon, CopyIcon, ArrowRightIcon } from './Icons';
+import { PhoneIcon, WhatsappIcon, CopyIcon, ArrowRightIcon, CakeIcon } from './Icons';
 
 interface StudentDetailProps {
   students: Student[];
@@ -115,6 +116,16 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">מספר טלפון</label>
              <p className="text-lg font-medium text-gray-800 dark:text-gray-100 dir-ltr text-right">{student.phone_number}</p>
           </div>
+
+          {student.birthday_hebrew && (
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors flex items-center justify-between">
+               <div>
+                  <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">תאריך יום הולדת עברי</label>
+                  <p className="text-lg font-bold text-pink-600 dark:text-pink-400">{student.birthday_hebrew}</p>
+               </div>
+               <CakeIcon className="w-8 h-8 text-pink-100 dark:text-gray-700" />
+            </div>
+          )}
 
           {student.notes && (
              <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
