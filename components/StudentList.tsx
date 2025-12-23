@@ -6,13 +6,13 @@ import { SearchIcon, XIcon, ArrowRightIcon, MenuIcon, CakeIcon } from './Icons';
 import { APP_CONFIG } from '../constants';
 import Sidebar from './Sidebar';
 
-// Utility to convert day number to Hebrew Gematria letters
+// כלי עזר להמרת מספר יום בחודש לאותיות גימטריה
 const getHebrewDayGematria = (day: number): string => {
   const units = ["", "א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ז׳", "ח׳", "ט׳", "י׳", "י״א", "י״ב", "י״ג", "י״ד", "ט״ו", "ט״ז", "י״ז", "י״ח", "י״ט", "כ׳", "כ״א", "כ״ב", "כ״ג", "כ״ד", "כ״ה", "כ״ו", "כ״ז", "כ״ח", "כ״ט", "ל׳"];
   return units[day] || day.toString();
 };
 
-// Simple mapping for current years to Gematria
+// מיפוי פשוט לשנים עבריות קרובות
 const getHebrewYearGematria = (year: number): string => {
   const years: Record<number, string> = {
     5784: "תשפ״ד",
@@ -33,10 +33,10 @@ const StudentList: React.FC<StudentListProps> = ({ students }) => {
   const [selectedClass, setSelectedClass] = useState('all');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Robust Hebrew date formatting
+  // עיצוב תאריך עברי יציב לכותרת
   const currentHebrewDate = useMemo(() => {
     const now = new Date();
-    // Use Intl just to get the numbers/names
+    // שימוש ב-Intl רק כדי לחלץ את חלקי התאריך
     const parts = new Intl.DateTimeFormat('he-u-ca-hebrew', { day: 'numeric', month: 'long', year: 'numeric' }).formatToParts(now);
     
     const dayVal = parseInt(parts.find(p => p.type === 'day')?.value || "0");
@@ -50,7 +50,7 @@ const StudentList: React.FC<StudentListProps> = ({ students }) => {
     return `${gematriaDay} ${cleanMonth} ${gematriaYear}`;
   }, []);
 
-  // Get Current Hebrew Month for logic
+  // קבלת שם החודש העברי הנוכחי לצורך סינון ימי הולדת
   const currentHebrewMonth = useMemo(() => {
     const formatter = new Intl.DateTimeFormat('he-u-ca-hebrew', { month: 'long' });
     const monthPart = formatter.format(new Date());
@@ -149,7 +149,7 @@ const StudentList: React.FC<StudentListProps> = ({ students }) => {
           </div>
         ) : (
           filteredStudents.map((student) => {
-            // Check if birthday contains current month name
+            // בדיקה האם יום ההולדת חל בחודש הנוכחי
             const isBirthday = student.birthday_hebrew && student.birthday_hebrew.includes(currentHebrewMonth);
             
             return (

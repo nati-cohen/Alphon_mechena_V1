@@ -1,7 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import { XIcon, MoreVerticalIcon } from './Icons';
 
-// Helper to check if the app is already installed
+// כלי עזר לבדיקה האם האפליקציה כבר מותקנת על המכשיר
 const isStandalone = () => {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -17,30 +18,29 @@ const InstallPwa: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // If already installed, do not show
+    // במידה וכבר מותקן, אין צורך להציג את ההנחיה
     if (isStandalone()) return;
 
-    // Check session storage to avoid showing if user closed it this session
+    // בדיקת אחסון הסשן כדי לא להציק למשתמש שסגר את ההודעה באותו הביקור
     const hasClosed = sessionStorage.getItem('pwa-prompt-closed');
     if (hasClosed) return;
 
-    // Timer to force show the modal if the browser doesn't trigger the event automatically
-    // This handles cases like Dev mode, non-supported browsers, or if the user ignored it before
+    // טיימר להצגת המודאל במידה והדפדפן לא הפעיל את אירוע ההתקנה אוטומטית
     const timer = setTimeout(() => {
       setShowModal(true);
     }, 2500);
 
-    // Android / Desktop PWA prompt
+    // טיפול בהנחיית התקנה לאנדרואיד / מחשב
     const handler = (e: any) => {
       e.preventDefault();
       setSupportsPWA(true);
       setPromptInstall(e);
       setShowModal(true);
-      clearTimeout(timer); // Event received, no need to force
+      clearTimeout(timer); // האירוע התקבל, אין צורך בטיימר המאולץ
     };
     window.addEventListener('beforeinstallprompt', handler);
 
-    // iOS Detection
+    // זיהוי מכשירי iOS
     const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     if (isIosDevice) {
       setIsIOS(true);
@@ -74,16 +74,16 @@ const InstallPwa: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center pointer-events-none">
-      {/* Backdrop */}
+      {/* רקע מעומעם */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-300 animate-fadeIn"
         onClick={handleClose}
       />
       
-      {/* Card content */}
+      {/* כרטיס המידע */}
       <div className="bg-white dark:bg-gray-800 w-full max-w-sm m-4 p-5 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 pointer-events-auto animate-slideUp transform transition-all relative">
         
-        {/* Close Button */}
+        {/* כפתור סגירה */}
         <button 
           onClick={handleClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-full transition-colors"
@@ -103,7 +103,7 @@ const InstallPwa: React.FC = () => {
              התקן את אלפון מכינת בית אל לגישה מהירה ונוחה ישירות ממסך הבית שלך
            </p>
 
-           {/* Case 1: Browser supports automatic install (Chrome Android mostly) */}
+           {/* מקרה 1: הדפדפן תומך בהתקנה אוטומטית (בעיקר כרום באנדרואיד) */}
            {supportsPWA && (
              <button
                onClick={handleInstallClick}
@@ -116,7 +116,7 @@ const InstallPwa: React.FC = () => {
              </button>
            )}
 
-           {/* Case 2: iOS Manual Instructions */}
+           {/* מקרה 2: הוראות ידניות ל-iOS */}
            {isIOS && !supportsPWA && (
              <div className="w-full bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-4 text-sm text-gray-600 dark:text-gray-300 text-right">
                 <div className="flex items-center gap-3 mb-3">
@@ -130,7 +130,7 @@ const InstallPwa: React.FC = () => {
              </div>
            )}
 
-           {/* Case 3: Android/Chrome Manual Instructions (if auto-install fails) */}
+           {/* מקרה 3: הוראות ידניות לאנדרואיד/כרום (במידה וההתקנה האוטומטית נכשלה) */}
            {!supportsPWA && !isIOS && (
              <div className="w-full bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-4 text-sm text-gray-600 dark:text-gray-300 text-right">
                 <div className="flex items-center gap-3 mb-3">

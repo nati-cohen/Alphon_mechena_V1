@@ -203,7 +203,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
              </div>
           </button>
         </div>
-        <div className="p-4 border-t border-gray-100 dark:border-gray-700 text-center text-xs text-gray-400 dark:text-gray-500">גרסה 1.0.0</div>
+        <div className="p-4 border-t border-gray-100 dark:border-gray-700 text-center text-xs text-gray-400 dark:text-gray-500">גרסה 1.0.1</div>
       </div>
     </>
   );

@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Student } from '../types';
 import { CakeIcon, ArrowRightIcon, ChevronLeftIcon } from './Icons';
 
-// Helper to convert day number to Hebrew Gematria letters
+// כלי עזר להמרת מספר יום בחודש לאותיות גימטריה
 const getHebrewDayGematria = (day: number): string => {
   const units = ["", "א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ז׳", "ח׳", "ט׳", "י׳", "י״א", "י״ב", "י״ג", "י״ד", "ט״ו", "ט״ז", "י״ז", "י״ח", "י״ט", "כ׳", "כ״א", "כ״ב", "כ״ג", "כ״ד", "כ״ה", "כ״ו", "כ״ז", "כ״ח", "כ״ט", "ל׳"];
   return units[day] || day.toString();
 };
 
+// כלי עזר להמרת שנה למחרוזת גימטריה
 const getHebrewYearGematria = (year: number): string => {
   const years: Record<number, string> = {
     5784: "תשפ״ד",
@@ -27,7 +28,7 @@ interface BirthdayPageProps {
 const BirthdayPage: React.FC<BirthdayPageProps> = ({ students }) => {
   const navigate = useNavigate();
 
-  // Robust Hebrew date formatting
+  // עיצוב תאריך עברי יציב לכותרת הדף
   const currentHebrewDate = useMemo(() => {
     const now = new Date();
     const parts = new Intl.DateTimeFormat('he-u-ca-hebrew', { day: 'numeric', month: 'long', year: 'numeric' }).formatToParts(now);
@@ -43,14 +44,14 @@ const BirthdayPage: React.FC<BirthdayPageProps> = ({ students }) => {
     return `${gematriaDay} ${cleanMonth} ${gematriaYear}`;
   }, []);
 
-  // Get current Hebrew Month name (clean)
+  // קבלת שם החודש העברי הנוכחי (נקי מקידומות)
   const currentMonthName = useMemo(() => {
     const formatter = new Intl.DateTimeFormat('he-u-ca-hebrew', { month: 'long' });
     const monthPart = formatter.format(new Date());
     return monthPart.startsWith('ב') ? monthPart.substring(1) : monthPart;
   }, []);
 
-  // Filter students who have a birthday in the current month
+  // סינון תלמידים שחוגגים יום הולדת בחודש הנוכחי
   const birthdayStudents = useMemo(() => {
     return students.filter(student => {
       if (!student.birthday_hebrew) return false;
@@ -62,7 +63,7 @@ const BirthdayPage: React.FC<BirthdayPageProps> = ({ students }) => {
 
   return (
     <div className="min-h-screen bg-pink-50/20 dark:bg-gray-900 flex flex-col animate-fadeIn transition-colors duration-200">
-      {/* Header */}
+      {/* כותרת הדף */}
       <div className="bg-white dark:bg-gray-800 p-4 shadow-sm border-b border-pink-100 dark:border-gray-700 sticky top-0 z-10 flex items-center gap-4">
         <button 
           onClick={() => navigate('/')}
@@ -79,7 +80,7 @@ const BirthdayPage: React.FC<BirthdayPageProps> = ({ students }) => {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* תוכן ראשי */}
       <div className="flex-1 p-4 space-y-4">
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-pink-50 dark:border-gray-700 text-center mb-4">
            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">חוגגים בחודש</p>
@@ -94,8 +95,11 @@ const BirthdayPage: React.FC<BirthdayPageProps> = ({ students }) => {
         ) : (
           <div className="grid gap-3">
             {birthdayStudents.map((student) => {
-               const parts = student.birthday_hebrew!.split(' ');
-               const dayMonth = parts.length >= 2 ? `${parts[0]} ${parts[1]}${parts[2] && isNaN(parseInt(parts[2])) ? ' ' + parts[2] : ''}` : student.birthday_hebrew;
+               // לוגיקה חדשה: הסרת השנה מהתצוגה (מסננים מילים שמתחילות ב'תש')
+               const dayMonth = student.birthday_hebrew!
+                 .split(' ')
+                 .filter(part => !part.startsWith('תש'))
+                 .join(' ');
 
                return (
                  <div 
