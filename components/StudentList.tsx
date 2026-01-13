@@ -6,21 +6,53 @@ import { SearchIcon, XIcon, ArrowRightIcon, MenuIcon, CakeIcon } from './Icons';
 import { APP_CONFIG } from '../constants';
 import Sidebar from './Sidebar';
 
-// כלי עזר להמרת מספר יום בחודש לאותיות גימטריה
-const getHebrewDayGematria = (day: number): string => {
-  const units = ["", "א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ז׳", "ח׳", "ט׳", "י׳", "י״א", "י״ב", "י״ג", "י״ד", "ט״ו", "ט״ז", "י״ז", "י״ח", "י״ט", "כ׳", "כ״א", "כ״ב", "כ״ג", "כ״ד", "כ״ה", "כ״ו", "כ״ז", "כ״ח", "כ״ט", "ל׳"];
-  return units[day] || day.toString();
-};
+// כלי עזר להמרת מספר (יום או שנה) למחרוזת גימטריה עברית
+const getHebrewGematria = (num: number): string => {
+  if (num <= 0) return "";
+  
+  // בחישוב שנים עבריות נהוג להשתמש ב"פרט קטן" (ללא האלפים)
+  const n = num > 5000 ? num - 5000 : num;
+  
+  const units = ["", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"];
+  const tens = ["", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ"];
+  const hundreds = ["", "ק", "ר", "ש", "ת"];
+  
+  let result = "";
+  let tempNum = n;
 
-// מיפוי פשוט לשנים עבריות קרובות
-const getHebrewYearGematria = (year: number): string => {
-  const years: Record<number, string> = {
-    5784: "תשפ״ד",
-    5785: "תשפ״ה",
-    5786: "תשפ״ו",
-    5787: "תשפ״ז"
-  };
-  return years[year] || year.toString();
+  // חישוב מאות
+  while (tempNum >= 400) {
+    result += "ת";
+    tempNum -= 400;
+  }
+  if (tempNum >= 100) {
+    const h = Math.floor(tempNum / 100);
+    result += hundreds[h];
+    tempNum %= 100;
+  }
+
+  // טיפול במקרים מיוחדים של ט"ו ו-ט"ז
+  if (tempNum === 15) {
+    result += "טו";
+  } else if (tempNum === 16) {
+    result += "טז";
+  } else {
+    // חישוב עשרות
+    if (tempNum >= 10) {
+      result += tens[Math.floor(tempNum / 10)];
+      tempNum %= 10;
+    }
+    // חישוב יחידות
+    if (tempNum > 0) {
+      result += units[tempNum];
+    }
+  }
+
+  // הוספת גרשיים או גרש לפי כללי הדקדוק
+  if (result.length > 1) {
+    return result.slice(0, -1) + '״' + result.slice(-1);
+  }
+  return result + '׳';
 };
 
 interface StudentListProps {
@@ -44,8 +76,8 @@ const StudentList: React.FC<StudentListProps> = ({ students }) => {
     const yearVal = parseInt(parts.find(p => p.type === 'year')?.value || "0");
 
     const cleanMonth = monthVal.startsWith('ב') ? monthVal.substring(1) : monthVal;
-    const gematriaDay = getHebrewDayGematria(dayVal);
-    const gematriaYear = getHebrewYearGematria(yearVal);
+    const gematriaDay = getHebrewGematria(dayVal);
+    const gematriaYear = getHebrewGematria(yearVal);
 
     return `${gematriaDay} ${cleanMonth} ${gematriaYear}`;
   }, []);

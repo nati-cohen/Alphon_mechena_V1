@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Student } from '../types';
-import { PhoneIcon, WhatsappIcon, CopyIcon, ArrowRightIcon, CakeIcon } from './Icons';
+import { PhoneIcon, WhatsappIcon, CopyIcon, ArrowRightIcon, CakeIcon, XIcon } from './Icons';
 
 interface StudentDetailProps {
   students: Student[];
@@ -13,11 +13,22 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
   const navigate = useNavigate();
   const [student, setStudent] = useState<Student | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // מצב לניהול המודאל של התמונה
 
   useEffect(() => {
     const found = students.find((s) => s.id === id);
     setStudent(found || null);
   }, [id, students]);
+
+  // מניעת גלילה של הדף כשהתמונה מוגדלת
+  useEffect(() => {
+    if (isImageModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isImageModalOpen]);
 
   if (!student) {
     return (
@@ -48,6 +59,31 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-200">
+      {/* מודאל תמונה מוגדלת */}
+      {isImageModalOpen && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsImageModalOpen(false)}
+        >
+          <button 
+            className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors"
+            onClick={() => setIsImageModalOpen(false)}
+          >
+            <XIcon className="w-8 h-8" />
+          </button>
+          <div className="max-w-full max-h-[80vh] relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={student.image_url} 
+              alt={student.full_name} 
+              className="rounded-2xl w-full h-full object-contain border-4 border-white/10"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?background=random&color=fff&name=${encodeURIComponent(student.full_name)}`;
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="bg-white dark:bg-gray-800 p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10 transition-colors">
         <button 
           onClick={() => navigate(-1)}
@@ -60,7 +96,10 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
 
       <div className="flex-1 p-6 flex flex-col items-center animate-fadeIn">
         <div className="relative mb-6">
-          <div className="w-32 h-32 rounded-full p-1 bg-white dark:bg-gray-800 shadow-lg">
+          <div 
+            className="w-32 h-32 rounded-full p-1 bg-white dark:bg-gray-800 shadow-lg cursor-pointer transform active:scale-95 transition-all hover:ring-4 hover:ring-blue-500/20"
+            onClick={() => setIsImageModalOpen(true)} // לחיצה להגדלה
+          >
              <img 
               src={student.image_url} 
               alt={student.full_name} 
@@ -69,6 +108,9 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
                 (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?background=random&color=fff&name=${encodeURIComponent(student.full_name)}`;
               }}
             />
+          </div>
+          <div className="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full border-2 border-white dark:border-gray-800 shadow-md">
+            <SearchIcon className="w-3 h-3" />
           </div>
         </div>
 
@@ -113,13 +155,13 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
 
         <div className="w-full max-w-md space-y-4">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
-             <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">מספר טלפון</label>
+             <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1 text-right">מספר טלפון</label>
              <p className="text-lg font-medium text-gray-800 dark:text-gray-100 dir-ltr text-right">{student.phone_number}</p>
           </div>
 
           {student.birthday_hebrew && (
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors flex items-center justify-between">
-               <div>
+               <div className="text-right">
                   <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">תאריך יום הולדת עברי</label>
                   <p className="text-lg font-bold text-pink-600 dark:text-pink-400">{student.birthday_hebrew}</p>
                </div>
@@ -129,8 +171,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
 
           {student.notes && (
              <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
-                <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">הערות</label>
-                <p className="text-base text-gray-700 dark:text-gray-200 leading-relaxed">{student.notes}</p>
+                <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1 text-right">הערות</label>
+                <p className="text-base text-gray-700 dark:text-gray-200 leading-relaxed text-right">{student.notes}</p>
              </div>
           )}
         </div>
@@ -138,5 +180,13 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
     </div>
   );
 };
+
+// ייבוא אייקון חיפוש לשימוש בתוך הרכיב
+const SearchIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
 
 export default StudentDetail;
