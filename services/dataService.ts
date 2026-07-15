@@ -44,6 +44,9 @@ export const fetchStudents = async (): Promise<Student[]> => {
             const className = getValue(row, SHEET_HEADERS.CLASS, 'כיתה') || 'כללי';
             const notes = getValue(row, SHEET_HEADERS.NOTES, 'הערות');
             const birthday = getValue(row, SHEET_HEADERS.BIRTHDAY, 'יום הולדת');
+            const hiddenRaw = getValue(row, SHEET_HEADERS.HIDDEN, 'מוסתר');
+
+            const isHidden = ['true', 'כן', 'v', '1', 'yes', 'y'].includes(hiddenRaw.toLowerCase());
 
             let imageUrl = rawImage;
             if (!imageUrl) {
@@ -57,13 +60,14 @@ export const fetchStudents = async (): Promise<Student[]> => {
               image_url: imageUrl,
               class: className,
               notes: notes,
-              birthday_hebrew: birthday
+              birthday_hebrew: birthday,
+              is_hidden: isHidden
             };
           });
 
           const validStudents = parsedStudents.filter(s => 
-            s.full_name !== 'תלמיד ללא שם' && s.full_name.trim() !== ''
-          );
+            s.full_name !== 'תלמיד ללא שם' && s.full_name.trim() !== '' && !s.is_hidden
+          ).sort((a, b) => a.full_name.localeCompare(b.full_name, 'he'));
           
           resolve(validStudents);
         },

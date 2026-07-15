@@ -20,6 +20,7 @@ export const SHEET_HEADERS = {
   CLASS: 'class',
   NOTES: 'notes',
   BIRTHDAY: 'יום הולדת', // הכותרת בגיליון כפי שמוגדרת ב-Google Sheet
+  HIDDEN: 'מוסתר', // עמודה להסתרת תלמידים
 };
 
 // תמונת ברירת מחדל במידה ולא הועלתה תמונה לתלמיד

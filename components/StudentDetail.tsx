@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Student } from '../types';
-import { PhoneIcon, WhatsappIcon, CopyIcon, ArrowRightIcon, CakeIcon, XIcon } from './Icons';
+import { PhoneIcon, WhatsappIcon, CopyIcon, ArrowRightIcon, CakeIcon, XIcon, UserPlusIcon } from './Icons';
 
 interface StudentDetailProps {
   students: Student[];
@@ -55,6 +55,24 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 2000);
     });
+  };
+
+  const handleSaveContact = () => {
+    if (!student) return;
+    
+    const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${student.full_name}\nTEL;TYPE=CELL:${student.phone_number}\nEND:VCARD`;
+    
+    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${student.full_name}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -119,7 +137,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
           {student.class}
         </div>
 
-        <div className="grid grid-cols-3 gap-4 w-full max-w-md mb-8">
+        <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
           <button 
             onClick={handleCall}
             className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
@@ -150,6 +168,16 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
             <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
               {copyFeedback ? 'הועתק!' : 'העתק'}
             </span>
+          </button>
+
+          <button 
+            onClick={handleSaveContact}
+            className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
+          >
+            <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+              <UserPlusIcon className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">שמור איש קשר</span>
           </button>
         </div>
 

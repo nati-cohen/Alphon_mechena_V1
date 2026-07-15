@@ -7,6 +7,7 @@ export interface Student {
   class: string;
   notes: string;
   birthday_hebrew?: string; // חודש יום ההולדת בעברית
+  is_hidden?: boolean; // האם התלמיד מוסתר
 }
 
 export interface GoogleSheetRow {
@@ -16,6 +17,7 @@ export interface GoogleSheetRow {
   class: string;
   notes: string;
   birthday_hebrew: string;
+  מוסתר?: string;
 }
 
 export interface AppState {

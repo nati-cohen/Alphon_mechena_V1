@@ -131,7 +131,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <HashRouter>
+    <HashRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <div className="max-w-md mx-auto bg-gray-50 dark:bg-gray-900 h-screen shadow-2xl overflow-hidden relative transition-colors duration-200">
         {birthdayTodayStudents.length > 0 && <BirthdayPopup students={birthdayTodayStudents} />}
         

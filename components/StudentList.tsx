@@ -144,6 +144,7 @@ const StudentList: React.FC<StudentListProps> = ({
                 <div className="flex-1 min-w-0 text-right">
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-gray-800 dark:text-gray-100 truncate leading-tight transition-all duration-200">{student.full_name}</h3>
+                    {student.class && <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-[10px] px-2 py-0.5 rounded-full font-bold">{student.class}</span>}
                     {isBirthday && <span className="birthday-tag text-pink-500 font-bold animate-pulse px-1.5 py-0.5 bg-pink-50 dark:bg-pink-900/20 rounded-full transition-all duration-200">מזל טוב!</span>}
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 truncate dir-ltr transition-all duration-200">{student.phone_number}</p>
