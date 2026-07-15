@@ -112,10 +112,10 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
         <h2 className="text-xl font-bold text-gray-800 dark:text-white">פרטי איש קשר</h2>
       </div>
 
-      <div className="flex-1 p-6 flex flex-col items-center animate-fadeIn">
-        <div className="relative mb-6">
+      <div className="flex-1 p-5 flex flex-col items-center animate-fadeIn">
+        <div className="relative mb-4">
           <div 
-            className="w-32 h-32 rounded-full p-1 bg-white dark:bg-gray-800 shadow-lg cursor-pointer transform active:scale-95 transition-all hover:ring-4 hover:ring-blue-500/20"
+            className="w-28 h-28 rounded-full p-1 bg-white dark:bg-gray-800 shadow-lg cursor-pointer transform active:scale-95 transition-all hover:ring-4 hover:ring-blue-500/20"
             onClick={() => setIsImageModalOpen(true)} // לחיצה להגדלה
           >
              <img 
@@ -132,52 +132,52 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1 text-center">{student.full_name}</h1>
-        <div className="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 px-4 py-1 rounded-full text-sm font-medium mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1 text-center">{student.full_name}</h1>
+        <div className="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 px-3.5 py-0.5 rounded-full text-xs font-medium mb-5">
           {student.class}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
+        <div className="grid grid-cols-2 gap-3 w-full max-w-md mb-5">
           <button 
             onClick={handleCall}
-            className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
+            className="flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
           >
-            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
-              <PhoneIcon className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+              <PhoneIcon className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">חיוג</span>
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">חיוג</span>
           </button>
 
           <button 
             onClick={handleWhatsApp}
-            className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
+            className="flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
           >
-            <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white">
-              <WhatsappIcon className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+              <WhatsappIcon className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">וואטסאפ</span>
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">וואטסאפ</span>
           </button>
 
           <button 
             onClick={handleCopy}
-            className="relative flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
+            className="relative flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
           >
-             <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-              <CopyIcon className="w-6 h-6" />
+             <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+              <CopyIcon className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              {copyFeedback ? 'הועתק!' : 'העתק'}
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+              {copyFeedback ? 'הועתק!' : 'העתק מס׳'}
             </span>
           </button>
 
           <button 
             onClick={handleSaveContact}
-            className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
+            className="flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
           >
-            <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
-              <UserPlusIcon className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+              <UserPlusIcon className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">שמור איש קשר</span>
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">שמור איש קשר</span>
           </button>
         </div>
 
