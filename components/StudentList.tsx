@@ -81,8 +81,13 @@ const StudentList: React.FC<StudentListProps> = ({
   }, [students]);
 
   const filteredStudents = useMemo(() => {
+    const cleanSearchQuery = searchQuery.replace(/\D/g, ''); // Extract only digits for phone search
     return students.filter((student) => {
-      const matchesSearch = student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || student.phone_number.includes(searchQuery);
+      const nameMatches = student.full_name.toLowerCase().includes(searchQuery.toLowerCase());
+      const studentPhoneClean = student.phone_number.replace(/\D/g, '');
+      const phoneMatches = cleanSearchQuery && studentPhoneClean.includes(cleanSearchQuery) || student.phone_number.includes(searchQuery);
+      
+      const matchesSearch = nameMatches || phoneMatches;
       const matchesClass = selectedClass === 'all' || student.class === selectedClass;
       return matchesSearch && matchesClass;
     });
@@ -106,8 +111,14 @@ const StudentList: React.FC<StudentListProps> = ({
           </div>
           <button onClick={() => setIsSidebarOpen(true)} className="absolute right-0 p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"><MenuIcon className="w-6 h-6" /></button>
         </div>
-        <div className="relative">
-          <input type="text" placeholder="חיפוש לפי שם או טלפון..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-xl py-3 pr-10 pl-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400 dark:placeholder-gray-500 text-right" />
+        <div className="relative group">
+          <input 
+            type="text" 
+            placeholder="חיפוש לפי שם או טלפון..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+            className="w-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-xl py-3 pr-10 pl-4 outline-none focus:outline-none border-2 border-transparent focus:border-blue-500 focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-right" 
+          />
           <div className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"><SearchIcon className="w-5 h-5" /></div>
           {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1"><XIcon className="w-4 h-4" /></button>}
         </div>

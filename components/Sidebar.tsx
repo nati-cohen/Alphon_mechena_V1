@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   XIcon, WrenchIcon, CalendarIcon, MailIcon, ChevronLeftIcon, 
   HeartIcon, MoonIcon, SunIcon, CreditCardIcon, BankIcon, 
-  CakeIcon, FontSizeIcon 
+  CakeIcon, FontSizeIcon, SmartphoneIcon, PhoneIcon, 
+  WhatsappIcon, ExternalLinkIcon, CopyIcon, CheckIcon
 } from './Icons';
 import { APP_CONFIG } from '../constants';
 
@@ -77,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, cardScaleLevel, onSc
       icon: <HeartIcon className="w-5 h-5 text-red-500" />,
       color: 'bg-red-50 dark:bg-red-900/30',
       isExternal: false,
-      onClick: (e: React.MouseEvent) => { e.preventDefault(); onClose(); setShowDonation(true); }
+      onClick: (e: React.MouseEvent) => { e.preventDefault(); onClose(); navigate('/donate'); }
     },
     {
       label: 'צור קשר',
@@ -92,30 +93,55 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, cardScaleLevel, onSc
     <>
       {showDonation && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn" onClick={() => setShowDonation(false)}>
-          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto text-right" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowDonation(false)} className="absolute top-4 right-4 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><XIcon className="w-6 h-6" /></button>
             <div className="text-center mb-6 mt-2">
               <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3 text-red-600 dark:text-red-400"><HeartIcon className="w-8 h-8 fill-current" /></div>
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white">דרכי תרומה למכינה</h2>
             </div>
             <div className="space-y-4">
+              {/* אשראי וביט */}
               <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-lg text-blue-600 dark:text-blue-300"><CreditCardIcon className="w-5 h-5" /></div>
+                <div className="flex items-center gap-3 mb-2 justify-end">
                   <h3 className="font-bold text-gray-800 dark:text-white">באשראי ובביט</h3>
+                  <div className="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-lg text-blue-600 dark:text-blue-300"><CreditCardIcon className="w-5 h-5" /></div>
                 </div>
-                <a href="https://bit.ly/תרומה-לישיבת-בית-אל" target="_blank" rel="noopener noreferrer" className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2.5 rounded-lg font-medium transition-colors">מעבר לתשלום מאובטח</a>
+                <a href="https://donation.asakimerp.com/Campaing/?CampaingID=51105" target="_blank" rel="noopener noreferrer" className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2.5 rounded-lg font-medium transition-colors">מעבר לתשלום מאובטח</a>
               </div>
+
+              {/* פיבוקס */}
               <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-purple-100 dark:bg-purple-900/40 p-2 rounded-lg text-purple-600 dark:text-purple-300"><BankIcon className="w-5 h-5" /></div>
+                <div className="flex items-center gap-3 mb-2 justify-end">
+                  <h3 className="font-bold text-gray-800 dark:text-white">ב-PayBox (פיבוקס)</h3>
+                  <div className="bg-cyan-100 dark:bg-cyan-900/40 p-2 rounded-lg text-cyan-600 dark:text-cyan-300"><SmartphoneIcon className="w-5 h-5" /></div>
+                </div>
+                <a href="https://payboxapp.page.link/ZQ636TG4CYMFGPd48" target="_blank" rel="noopener noreferrer" className="block w-full bg-cyan-600 hover:bg-cyan-700 text-white text-center py-2.5 rounded-lg font-medium transition-colors">מעבר לתרומה ב-PayBox</a>
+              </div>
+
+              {/* העברה בנקאית */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-3 mb-3 justify-end">
                   <h3 className="font-bold text-gray-800 dark:text-white">בהעברה בנקאית</h3>
+                  <div className="bg-purple-100 dark:bg-purple-900/40 p-2 rounded-lg text-purple-600 dark:text-purple-300"><BankIcon className="w-5 h-5" /></div>
                 </div>
                 <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300 pr-2">
-                  <p><span className="font-semibold text-gray-800 dark:text-white">שם החשבון:</span> קרית הישיבה בית אל</p>
-                  <p><span className="font-semibold text-gray-800 dark:text-white">בנק:</span> יובנק (26)</p>
-                  <p><span className="font-semibold text-gray-800 dark:text-white">סניף:</span> 288</p>
-                  <p><span className="font-semibold text-gray-800 dark:text-white">מספר חשבון:</span> 320196</p>
+                  <p><span className="font-semibold text-gray-800 dark:text-white">בנק:</span> 26 יובנק</p>
+                  <p><span className="font-semibold text-gray-800 dark:text-white">סניף:</span> 288 קרן היסוד</p>
+                  <p><span className="font-semibold text-gray-800 dark:text-white">מספר חשבון:</span> 417793</p>
+                  <p><span className="font-semibold text-gray-800 dark:text-white">ע"ש:</span> קרית הישיבה בית אל - מכינה קדם צבאית</p>
+                </div>
+              </div>
+
+              {/* לפרטים נוספים */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-3 mb-2 justify-end">
+                  <h3 className="font-bold text-gray-800 dark:text-white">לפרטים נוספים</h3>
+                  <div className="bg-emerald-100 dark:bg-emerald-900/40 p-2 rounded-lg text-emerald-600 dark:text-emerald-300"><PhoneIcon className="w-5 h-5" /></div>
+                </div>
+                <p className="text-sm text-gray-800 dark:text-white font-bold">בצלאל דוכן</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <a href="tel:0506713009" className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-center py-2 rounded-lg text-xs font-bold hover:bg-gray-300 transition-colors">חיוג (050-6713009)</a>
+                  <a href="https://wa.me/972506713009" target="_blank" rel="noopener noreferrer" className="flex-1 bg-emerald-600 text-white text-center py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors">ווטסאפ</a>
                 </div>
               </div>
             </div>
@@ -127,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, cardScaleLevel, onSc
         <div className="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center animate-fadeIn" onClick={() => setShowSchedule(false)}>
           <button onClick={() => setShowSchedule(false)} className="absolute top-4 right-4 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700 transition-colors z-20"><XIcon className="w-6 h-6" /></button>
           <div className="w-full h-full overflow-auto flex items-center justify-center p-2">
-            <img src="https://i.postimg.cc/VL8VvCWj/lwz.jpg" alt="לוח זמנים שבועי" className="rounded-lg shadow-2xl max-w-full max-h-[90vh] object-contain" />
+            <img src="https://i.postimg.cc/SsXX03fC/m'rkt-s'wt-tspz.jpg" alt="לוח זמנים שבועי" className="rounded-lg shadow-2xl max-w-full max-h-[90vh] object-contain" />
           </div>
         </div>
       )}

@@ -6,6 +6,7 @@ import { Student } from './types';
 import StudentList from './components/StudentList';
 import StudentDetail from './components/StudentDetail';
 import BirthdayPage from './components/BirthdayPage';
+import DonationPage from './components/DonationPage';
 import InstallPwa from './components/InstallPwa';
 import BirthdayPopup from './components/BirthdayPopup';
 
@@ -164,6 +165,9 @@ const App: React.FC = () => {
               />
             } 
           />
+
+          <Route path="/donate" element={<DonationPage />} />
+          <Route path="/donations" element={<DonationPage />} />
 
           {/* בכל ניתוב אחר, חזור לדף הבית */}
           <Route path="*" element={<Navigate to="/" replace />} />
