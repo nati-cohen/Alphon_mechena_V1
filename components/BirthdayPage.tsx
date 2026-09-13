@@ -193,10 +193,7 @@ const BirthdayPage: React.FC<BirthdayPageProps> = ({
         ) : (
           <div className="grid gap-3">
             {birthdayStudents.map((student) => {
-               const dayMonth = (student.birthday_hebrew || "")
-                 .split(' ')
-                 .filter(part => !part.startsWith('תש'))
-                 .join(' ');
+              
                return (
                  <div key={student.id} onClick={() => navigate(`/student/${student.id}`)} className="student-card bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-pink-50 dark:border-gray-700 flex items-center active:scale-[0.98] transition-all cursor-pointer group">
                     <div className="relative flex-shrink-0">
@@ -212,7 +209,7 @@ const BirthdayPage: React.FC<BirthdayPageProps> = ({
                          <h3 className="font-bold text-gray-800 dark:text-white truncate transition-all duration-200">{student.full_name}</h3>
                          <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-[10px] px-2 py-0.5 rounded-full font-bold">{student.class}</span>
                        </div>
-                       <p className="birthday-tag text-pink-600 dark:text-pink-400 font-bold mt-0.5 transition-all duration-200">{dayMonth}</p>
+                       <p className="birthday-tag text-pink-600 dark:text-pink-400 font-bold mt-0.5 transition-all duration-200">{student.birthday_hebrew}</p>
                     </div>
                     <div className="text-pink-100 dark:text-gray-700"><ChevronLeftIcon className="w-5 h-5" /></div>
                  </div>
