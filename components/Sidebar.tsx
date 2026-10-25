@@ -1,11 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   XIcon, WrenchIcon, CalendarIcon, MailIcon, ChevronLeftIcon, 
-  HeartIcon, MoonIcon, SunIcon, CreditCardIcon, BankIcon, 
-  CakeIcon, FontSizeIcon, SmartphoneIcon, PhoneIcon, 
-  WhatsappIcon, ExternalLinkIcon, CopyIcon, CheckIcon
+  HeartIcon, MoonIcon, SunIcon, CakeIcon, FontSizeIcon 
 } from './Icons';
 import { APP_CONFIG } from '../constants';
 
@@ -19,7 +16,6 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, cardScaleLevel, onScaleChange }) => {
   const navigate = useNavigate();
   const [showSchedule, setShowSchedule] = useState(false);
-  const [showDonation, setShowDonation] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -28,189 +24,188 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, cardScaleLevel, onSc
 
   const toggleTheme = () => {
     const root = document.documentElement;
-    if (isDark) {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-      setIsDark(false);
-    } else {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-      setIsDark(true);
+    try {
+      if (isDark) {
+        root.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        setIsDark(false);
+      } else {
+        root.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        setIsDark(true);
+      }
+    } catch (e) {
+      console.warn("Could not save theme to localStorage:", e);
     }
   };
 
   useEffect(() => {
-    if (isOpen || showSchedule || showDonation) {
+    if (isOpen || showSchedule) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
     return () => { document.body.style.overflow = 'unset'; };
-  }, [isOpen, showSchedule, showDonation]);
+  }, [isOpen, showSchedule]);
 
   const menuItems = [
     {
       label: 'ימי הולדת החודש',
       url: '#',
-      icon: <CakeIcon className="w-5 h-5 text-pink-500" />,
-      color: 'bg-pink-50 dark:bg-pink-900/30',
+      icon: <CakeIcon className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
       isExternal: false,
-      onClick: (e: React.MouseEvent) => { e.preventDefault(); onClose(); navigate('/birthdays'); }
+      onClick: (e: React.MouseEvent) => { 
+        e.preventDefault(); 
+        onClose(); 
+        navigate('/birthdays'); 
+      }
     },
     {
-      label: 'טופס תיקונים',
+      label: 'טופס תיקונים ',
       url: 'https://www.ybe.org.il/%D7%9E%D7%9B%D7%99%D7%A0%D7%AA-%D7%91%D7%99%D7%AA-%D7%90%D7%9C',
-      icon: <WrenchIcon className="w-5 h-5 text-blue-500" />,
-      color: 'bg-blue-50 dark:bg-blue-900/30',
+      icon: <WrenchIcon className="w-4 h-4 text-stone-600 dark:text-stone-300" />,
       isExternal: true
     },
     {
       label: 'לו"ז שבועי',
       url: '#',
-      icon: <CalendarIcon className="w-5 h-5 text-purple-500" />,
-      color: 'bg-purple-50 dark:bg-purple-900/30',
+      icon: <CalendarIcon className="w-4 h-4 text-stone-600 dark:text-stone-300" />,
       isExternal: false,
-      onClick: (e: React.MouseEvent) => { e.preventDefault(); onClose(); setShowSchedule(true); }
+      onClick: (e: React.MouseEvent) => { 
+        e.preventDefault(); 
+        onClose(); 
+        setShowSchedule(true); 
+      }
     },
     {
       label: 'תרומה למכינה',
       url: '#',
-      icon: <HeartIcon className="w-5 h-5 text-red-500" />,
-      color: 'bg-red-50 dark:bg-red-900/30',
+      icon: <HeartIcon className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
       isExternal: false,
-      onClick: (e: React.MouseEvent) => { e.preventDefault(); onClose(); navigate('/donate'); }
+      onClick: (e: React.MouseEvent) => { 
+        e.preventDefault(); 
+        onClose(); 
+        navigate('/donate'); 
+      }
     },
     {
-      label: 'צור קשר',
+      label: 'צור קשר  ',
       url: 'https://did.li/Contact-us1',
-      icon: <MailIcon className="w-5 h-5 text-green-500" />,
-      color: 'bg-green-50 dark:bg-green-900/30',
+      icon: <MailIcon className="w-4 h-4 text-stone-600 dark:text-stone-300" />,
       isExternal: true
     }
   ];
 
   return (
     <>
-      {showDonation && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn" onClick={() => setShowDonation(false)}>
-          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto text-right" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowDonation(false)} className="absolute top-4 right-4 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><XIcon className="w-6 h-6" /></button>
-            <div className="text-center mb-6 mt-2">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3 text-red-600 dark:text-red-400"><HeartIcon className="w-8 h-8 fill-current" /></div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">דרכי תרומה למכינה</h2>
-            </div>
-            <div className="space-y-4">
-              {/* אשראי וביט */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-3 mb-2 justify-end">
-                  <h3 className="font-bold text-gray-800 dark:text-white">באשראי ובביט</h3>
-                  <div className="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-lg text-blue-600 dark:text-blue-300"><CreditCardIcon className="w-5 h-5" /></div>
-                </div>
-                <a href="https://donation.asakimerp.com/Campaing/?CampaingID=51105" target="_blank" rel="noopener noreferrer" className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2.5 rounded-lg font-medium transition-colors">מעבר לתשלום מאובטח</a>
-              </div>
-
-              {/* פיבוקס */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-3 mb-2 justify-end">
-                  <h3 className="font-bold text-gray-800 dark:text-white">ב-PayBox (פיבוקס)</h3>
-                  <div className="bg-cyan-100 dark:bg-cyan-900/40 p-2 rounded-lg text-cyan-600 dark:text-cyan-300"><SmartphoneIcon className="w-5 h-5" /></div>
-                </div>
-                <a href="https://payboxapp.page.link/ZQ636TG4CYMFGPd48" target="_blank" rel="noopener noreferrer" className="block w-full bg-cyan-600 hover:bg-cyan-700 text-white text-center py-2.5 rounded-lg font-medium transition-colors">מעבר לתרומה ב-PayBox</a>
-              </div>
-
-              {/* העברה בנקאית */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-3 mb-3 justify-end">
-                  <h3 className="font-bold text-gray-800 dark:text-white">בהעברה בנקאית</h3>
-                  <div className="bg-purple-100 dark:bg-purple-900/40 p-2 rounded-lg text-purple-600 dark:text-purple-300"><BankIcon className="w-5 h-5" /></div>
-                </div>
-                <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300 pr-2">
-                  <p><span className="font-semibold text-gray-800 dark:text-white">בנק:</span> 26 יובנק</p>
-                  <p><span className="font-semibold text-gray-800 dark:text-white">סניף:</span> 288 קרן היסוד</p>
-                  <p><span className="font-semibold text-gray-800 dark:text-white">מספר חשבון:</span> 417793</p>
-                  <p><span className="font-semibold text-gray-800 dark:text-white">ע"ש:</span> קרית הישיבה בית אל - מכינה קדם צבאית</p>
-                </div>
-              </div>
-
-              {/* לפרטים נוספים */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-3 mb-2 justify-end">
-                  <h3 className="font-bold text-gray-800 dark:text-white">לפרטים נוספים</h3>
-                  <div className="bg-emerald-100 dark:bg-emerald-900/40 p-2 rounded-lg text-emerald-600 dark:text-emerald-300"><PhoneIcon className="w-5 h-5" /></div>
-                </div>
-                <p className="text-sm text-gray-800 dark:text-white font-bold">בצלאל דוכן</p>
-                <div className="flex items-center gap-3 mt-2">
-                  <a href="tel:0506713009" className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-center py-2 rounded-lg text-xs font-bold hover:bg-gray-300 transition-colors">חיוג (050-6713009)</a>
-                  <a href="https://wa.me/972506713009" target="_blank" rel="noopener noreferrer" className="flex-1 bg-emerald-600 text-white text-center py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors">ווטסאפ</a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* לוח זמנים שבועי */}
       {showSchedule && (
-        <div className="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center animate-fadeIn" onClick={() => setShowSchedule(false)}>
-          <button onClick={() => setShowSchedule(false)} className="absolute top-4 right-4 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700 transition-colors z-20"><XIcon className="w-6 h-6" /></button>
-          <div className="w-full h-full overflow-auto flex items-center justify-center p-2">
-            <img src="https://i.postimg.cc/SsXX03fC/m'rkt-s'wt-tspz.jpg" alt="לוח זמנים שבועי" className="rounded-lg shadow-2xl max-w-full max-h-[90vh] object-contain" />
+        <div 
+          className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-fadeIn" 
+          onClick={() => setShowSchedule(false)}
+        >
+          <button 
+            onClick={() => setShowSchedule(false)} 
+            className="absolute top-5 left-5 bg-stone-800 text-stone-200 hover:text-white p-2.5 rounded-full transition-colors z-20"
+            aria-label="סגירה"
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+          <div className="w-full max-w-2xl max-h-[85vh] overflow-auto flex items-center justify-center p-2">
+            <img 
+              src="https://i.postimg.cc/SsXX03fC/m'rkt-s'wt-tspz.jpg" 
+              alt="לוח זמנים שבועי" 
+              className="rounded-2xl shadow-2xl max-w-full max-h-[85vh] object-contain border border-stone-800" 
+            />
           </div>
         </div>
       )}
 
-      <div className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={onClose} aria-hidden="true" />
+      {/* רקע מעומעם לתפריט הצד */}
+      <div 
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
+        onClick={onClose} 
+        aria-hidden="true" 
+      />
 
-      <div className={`fixed top-0 right-0 h-full w-72 bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      {/* תפריט צד */}
+      <div 
+        className={`fixed top-0 right-0 h-full w-72 bg-[#FAF8F5] dark:bg-stone-900 border-l border-stone-200 dark:border-stone-800 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
         {/* כותרת התפריט */}
-        <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
-          <h2 className="text-lg font-bold text-gray-800 dark:text-white">{APP_CONFIG.NAME}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"><XIcon className="w-5 h-5" /></button>
+        <div className="p-4 border-b border-stone-200/80 dark:border-stone-800 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-heading font-bold text-stone-900 dark:text-stone-100">{APP_CONFIG.NAME}</h2>
+            <p className="text-[11px] text-stone-500 dark:text-stone-400">תפריט אפשרויות</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-stone-200/70 dark:hover:bg-stone-800 text-stone-500 dark:text-stone-400 transition-colors"
+            aria-label="סגור תפריט"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
         </div>
         
-        {/* תוכן התפריט - ניווט */}
-        <div className="flex-1 overflow-y-auto p-4 py-4 no-scrollbar">
-          <nav className="space-y-1 mb-6">
+        {/* פריטי ניווט ראשיים (ללא עיגולי פסטל צעקניים) */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 no-scrollbar">
+          <nav className="space-y-1">
             {menuItems.map((item, index) => (
-              <a key={index} href={item.url} target={item.isExternal ? "_blank" : undefined} rel={item.isExternal ? "noopener noreferrer" : undefined} onClick={item.onClick || onClose} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent hover:border-gray-100 dark:hover:border-gray-600 transition-all group cursor-pointer">
-                <div className={`p-1.5 rounded-full ${item.color} group-hover:scale-110 transition-transform`}>{item.icon}</div>
-                <div className="flex-1"><span className="font-bold text-gray-700 dark:text-gray-200 block text-[15px]">{item.label}</span></div>
-                <ChevronLeftIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+              <a 
+                key={index} 
+                href={item.url} 
+                target={item.isExternal ? "_blank" : undefined} 
+                rel={item.isExternal ? "noopener noreferrer" : undefined} 
+                onClick={item.onClick || onClose} 
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-800/80 border border-transparent hover:border-stone-200/80 dark:hover:border-stone-700/60 transition-all cursor-pointer group"
+              >
+                <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-stone-100 dark:bg-stone-800 shrink-0">
+                  {item.icon}
+                </div>
+                <span className="flex-1 font-medium text-sm text-stone-800 dark:text-stone-200">
+                  {item.label}
+                </span>
+                <ChevronLeftIcon className="w-3.5 h-3.5 text-stone-400 dark:text-stone-600 group-hover:-translate-x-0.5 transition-transform" />
               </a>
             ))}
           </nav>
         </div>
 
-        {/* הגדרות תצוגה - צמוד לתחתית */}
-        <div className="p-4 pt-2 border-t border-gray-100 dark:border-gray-700 space-y-3">
-          <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-2.5 border border-gray-100 dark:border-gray-700 space-y-3 shadow-sm">
-            <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest px-1">הגדרות תצוגה</h3>
+        {/* הגדרות תצוגה בתחתית */}
+        <div className="p-4 border-t border-stone-200/80 dark:border-stone-800 space-y-3 bg-stone-100/50 dark:bg-stone-950/40">
+          <div className="space-y-3">
+            <h3 className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+              העדפות תצוגה
+            </h3>
             
-            {/* מתג לילה/יום */}
-            <button onClick={toggleTheme} className="w-full flex items-center justify-between p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
+            {/* מתג מצב כהה / בהיר */}
+            <button 
+              onClick={toggleTheme} 
+              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700/80 hover:border-stone-300 dark:hover:border-stone-600 transition-colors shadow-sm"
+            >
               <div className="flex items-center gap-2">
-                <div className={`p-1 rounded-full ${isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-orange-100 text-orange-500'}`}>
-                  {isDark ? <MoonIcon className="w-3.5 h-3.5" /> : <SunIcon className="w-3.5 h-3.5" />}
+                <div className="w-7 h-7 rounded-lg bg-stone-100 dark:bg-stone-700 flex items-center justify-center text-stone-700 dark:text-amber-400">
+                  {isDark ? <MoonIcon className="w-4 h-4" /> : <SunIcon className="w-4 h-4" />}
                 </div>
-                <span className="font-bold text-gray-700 dark:text-gray-200 text-[11px]">{isDark ? 'מצב כהה' : 'מצב בהיר'}</span>
+                <span className="font-medium text-xs text-stone-800 dark:text-stone-200">
+                  {isDark ? 'מצב לילה פעיל' : 'מצב יום פעיל'}
+                </span>
               </div>
-              <div className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}>
+              <div className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${isDark ? 'bg-amber-600' : 'bg-stone-300'}`}>
                 <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform duration-200 ease-in-out ${isDark ? '-translate-x-4' : 'translate-x-0'}`} />
               </div>
             </button>
 
-            {/* סליידר גודל גופן/כרטיס */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-gray-600 dark:text-gray-300 px-1">
+            {/* סליידר גודל כרטיס */}
+            <div className="p-2.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700/80 shadow-sm space-y-2">
+              <div className="flex items-center justify-between text-stone-600 dark:text-stone-300">
                 <div className="flex items-center gap-1.5">
-                  <FontSizeIcon className="w-3.5 h-3.5" />
-                  <span className="text-[11px] font-bold">גודל כרטיסים</span>
+                  <FontSizeIcon className="w-3.5 h-3.5 text-stone-400" />
+                  <span className="text-xs font-medium">קנה מידה לכרטיסים</span>
                 </div>
+                <span className="text-[11px] font-mono text-stone-400">{cardScaleLevel} / 5</span>
               </div>
-              <div className="px-2 pb-1">
-                <div className="flex items-center justify-between mb-1 px-0.5">
-                  <span className="text-[10px] text-gray-400">א</span>
-                  <span className="text-[14px] text-gray-400">א</span>
-                </div>
+              <div className="px-1 pt-1">
                 <input 
                   type="range" 
                   min="1" 
@@ -218,13 +213,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, cardScaleLevel, onSc
                   step="1" 
                   value={cardScaleLevel} 
                   onChange={(e) => onScaleChange(parseInt(e.target.value, 10))}
-                  className="w-full"
+                  aria-label="קנה מידה לכרטיסים"
+                  className="w-full accent-amber-600 dark:accent-amber-500 cursor-pointer"
                 />
+                <div className="flex justify-between text-[10px] text-stone-400 mt-0.5 font-mono">
+                  <span>קטן</span>
+                  <span>רגיל</span>
+                  <span>גדול</span>
+                </div>
               </div>
             </div>
           </div>
           
-          <div className="text-center text-[9px] text-gray-400 dark:text-gray-500 font-bold tracking-widest uppercase">גרסה 1.0.2</div>
+          <p className="text-center text-[10px] text-stone-400 dark:text-stone-500 font-mono">
+            מכינת בית אל · תשפ״ו
+          </p>
         </div>
       </div>
     </>

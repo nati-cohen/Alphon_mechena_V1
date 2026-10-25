@@ -1,24 +1,21 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Student } from '../types';
 import { XIcon, WhatsappIcon, CakeIcon } from './Icons';
+import Avatar from './Avatar';
 
 interface BirthdayPopupProps {
   students: Student[];
 }
 
-const BirthdayPopup: React.FC<BirthdayPopupProps> = ({ students }) => {
+export const BirthdayPopup: React.FC<BirthdayPopupProps> = ({ students }) => {
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
   const isMulti = students.length > 1;
 
   useEffect(() => {
-    // אנימציית כניסה קלה
-    const timer = setTimeout(() => setIsVisible(true), 1000);
-    
-    // סגירה אוטומטית: 6 שניות ליחיד, 10 שניות לקבוצה (בתוספת זמן האנימציה)
-    const autoHideTime = isMulti ? 11000 : 7000;
+    const timer = setTimeout(() => setIsVisible(true), 1200);
+    const autoHideTime = isMulti ? 10000 : 7000;
     const closeTimer = setTimeout(() => setIsVisible(false), autoHideTime);
     
     return () => {
@@ -33,7 +30,7 @@ const BirthdayPopup: React.FC<BirthdayPopupProps> = ({ students }) => {
     if (cleanNum.startsWith('0')) {
       cleanNum = '972' + cleanNum.substring(1);
     }
-    const message = encodeURIComponent(`מזל טוב ליום הולדתך! 🎂🎈`);
+    const message = encodeURIComponent(`מזל טוב ליום הולדתך! שפע ברכה והצלחה 🎂`);
     window.open(`https://wa.me/${cleanNum}?text=${message}`, '_blank');
   };
 
@@ -45,48 +42,53 @@ const BirthdayPopup: React.FC<BirthdayPopupProps> = ({ students }) => {
   if (!isVisible || students.length === 0) return null;
 
   return (
-    <div className={`fixed top-6 left-4 right-4 z-[200] transition-all duration-700 transform ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-20 opacity-0 pointer-events-none'}`}>
-      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border-2 border-pink-100 dark:border-pink-900/50 p-4 relative overflow-visible">
-        
-        {/* כפתור סגירה מובלט */}
+    <div className={`fixed top-4 left-4 right-4 z-[90] max-w-md mx-auto transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0 pointer-events-none'}`}>
+      <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-md rounded-2xl shadow-xl border border-amber-200/80 dark:border-amber-800/60 p-4 relative">
+        {/* כפתור סגירה */}
         <button 
           onClick={() => setIsVisible(false)}
-          className="absolute -top-3 -left-3 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300 p-2 rounded-full shadow-lg border border-gray-100 dark:border-gray-600 hover:text-gray-800 dark:hover:text-white transition-all active:scale-90 z-20"
+          className="absolute top-3 left-3 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 p-1.5 rounded-lg transition-colors"
+          aria-label="סגור הודעה"
         >
           <XIcon className="w-4 h-4" />
         </button>
 
         {isMulti ? (
-          /* --- תצוגה לקבוצה (Integrated View) --- */
+          /* תצוגת קבוצה */
           <div className="text-right">
-             {/* קישוט רקע לרשימה */}
-            <div className="absolute -right-2 -top-2 opacity-10 text-pink-500 -rotate-12 pointer-events-none">
-              <CakeIcon className="w-16 h-16" />
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-amber-500"><CakeIcon className="w-5 h-5" /></span>
+              <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                חגיגת יום הולדת במכינה
+              </h3>
             </div>
-
-            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">חגיגה במכינה! 🎉</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">היום חוגגים יום הולדת ל-{students.length} תלמידים:</p>
+            <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
+              היום חוגגים יום הולדת ל-{students.length} תלמידים:
+            </p>
             
-            <div className="max-h-56 overflow-y-auto pr-1 space-y-3 no-scrollbar">
+            <div className="max-h-48 overflow-y-auto space-y-2 pr-0.5 no-scrollbar">
               {students.map((student) => (
                 <div 
                   key={student.id}
                   onClick={() => handleStudentClick(student.id)}
-                  className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/50 p-2.5 rounded-2xl border border-gray-100 dark:border-gray-600 active:scale-95 transition-all cursor-pointer group"
+                  className="flex items-center justify-between bg-stone-50 dark:bg-stone-800/60 p-2 rounded-xl border border-stone-200/60 dark:border-stone-700/60 active:scale-[0.98] transition-all cursor-pointer"
                 >
-                  <img 
-                    src={student.image_url} 
-                    alt={student.full_name} 
-                    className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-500 shadow-sm"
-                    onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?background=random&color=fff&name=${encodeURIComponent(student.full_name)}`; }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-800 dark:text-white truncate">{student.full_name}</p>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">{student.class}</p>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Avatar 
+                      name={student.full_name} 
+                      imageUrl={student.image_url} 
+                      sizeClassName="w-9 h-9 text-xs" 
+                    />
+                    <div className="min-w-0 text-right">
+                      <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">{student.full_name}</p>
+                      <p className="text-[10px] text-stone-400">{student.class}</p>
+                    </div>
                   </div>
+
                   <button 
                     onClick={(e) => handleWhatsApp(student, e)}
-                    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-xl shadow-sm active:scale-90 transition-all"
+                    className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition-colors"
+                    title="שלח איחול"
                   >
                     <WhatsappIcon className="w-4 h-4" />
                   </button>
@@ -95,45 +97,39 @@ const BirthdayPopup: React.FC<BirthdayPopupProps> = ({ students }) => {
             </div>
           </div>
         ) : (
-          /* --- תצוגה ליחיד (Original View) --- */
+          /* תצוגת יחיד */
           <div 
-            className="flex items-center gap-4 text-right cursor-pointer"
+            className="flex items-center gap-3.5 text-right cursor-pointer"
             onClick={() => handleStudentClick(students[0].id)}
           >
-            {/* קישוט רקע ליחיד */}
-            <div className="absolute -right-4 -bottom-4 opacity-5 text-pink-500 rotate-12 pointer-events-none">
-              <CakeIcon className="w-24 h-24" />
-            </div>
-
-            {/* תמונת תלמיד */}
-            <div className="relative flex-shrink-0">
-              <img 
-                src={students[0].image_url} 
-                alt={students[0].full_name} 
-                className="w-16 h-16 rounded-full object-cover border-2 border-pink-100 shadow-sm"
-                onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?background=random&color=fff&name=${encodeURIComponent(students[0].full_name)}`; }}
+            <div className="relative shrink-0">
+              <Avatar 
+                name={students[0].full_name} 
+                imageUrl={students[0].image_url} 
+                sizeClassName="w-12 h-12 text-sm" 
               />
-              <div className="absolute -bottom-1 -right-1 bg-pink-500 text-white p-1 rounded-full text-[10px] animate-bounce shadow-md">🎂</div>
+              <div className="absolute -top-1 -right-1 bg-amber-500 text-stone-950 p-0.5 rounded-full border-2 border-white dark:border-stone-900 shadow">
+                <CakeIcon className="w-3 h-3" />
+              </div>
             </div>
 
-            {/* תוכן הודעה */}
             <div className="flex-1 min-w-0">
-              <p className="text-gray-500 dark:text-gray-400 text-[11px] font-black uppercase tracking-wider mb-0.5">יש לנו חגיגה!</p>
-              <h4 className="text-gray-900 dark:text-white font-bold leading-tight text-base">
-                היום יום הולדת ל<span className="text-pink-600 dark:text-pink-400">{students[0].full_name}</span> - {students[0].class}
+              <span className="text-[10px] font-semibold tracking-wider uppercase text-amber-600 dark:text-amber-400">
+                יום הולדת היום!
+              </span>
+              <h4 className="font-heading text-stone-900 dark:text-stone-100 font-bold leading-tight text-sm truncate">
+                {students[0].full_name} {students[0].class ? `· ${students[0].class}` : ''}
               </h4>
-              <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-0.5">רוצה לאחל לו מזל טוב?</p>
+              <p className="text-stone-500 dark:text-stone-400 text-xs mt-0.5">רוצה לאחל לו מזל טוב?</p>
             </div>
 
-            {/* כפתור וואטסאפ בודד */}
-            <div className="flex-shrink-0">
-              <button 
-                onClick={(e) => handleWhatsApp(students[0], e)}
-                className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-2xl shadow-lg shadow-green-500/20 active:scale-90 transition-all"
-              >
-                <WhatsappIcon className="w-6 h-6" />
-              </button>
-            </div>
+            <button 
+              onClick={(e) => handleWhatsApp(students[0], e)}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shrink-0 active:scale-95 transition-all shadow-sm"
+              title="שלח ברכה בוואטסאפ"
+            >
+              <WhatsappIcon className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>

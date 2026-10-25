@@ -1,41 +1,15 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Student } from '../types';
-import { SearchIcon, XIcon, ArrowRightIcon, MenuIcon, CakeIcon } from './Icons';
+import { SearchIcon, XIcon, MenuIcon, PhoneIcon, WhatsappIcon, CakeIcon } from './Icons';
 import { APP_CONFIG } from '../constants';
 import Sidebar from './Sidebar';
-
-const isBirthdayMatchLocal = (studentBirthday: string | undefined, currentMonth: string): boolean => {
-  if (!studentBirthday) return false;
-  const bDay = studentBirthday.replace(/['"״׳]/g, '').trim();
-  const curr = currentMonth.replace(/['"״׳]/g, '').trim();
-  const isStudentAdarA = bDay.includes("אדר א");
-  const isStudentAdarB = bDay.includes("אדר ב");
-  const isStudentAdarPlain = bDay.includes("אדר") && !isStudentAdarA && !isStudentAdarB;
-  if (curr === "אדר") return isStudentAdarPlain || isStudentAdarA || isStudentAdarB;
-  if (curr === "אדר א") return isStudentAdarA;
-  if (curr === "אדר ב") return isStudentAdarB || isStudentAdarPlain;
-  return bDay.includes(curr);
-};
-
-const getHebrewGematria = (num: number): string => {
-  if (num <= 0) return "";
-  const n = num > 5000 ? num - 5000 : num;
-  const units = ["", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"];
-  const tens = ["", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ"];
-  const hundreds = ["", "ק", "ר", "ש", "ת"];
-  let result = "";
-  let tempNum = n;
-  while (tempNum >= 400) { result += "ת"; tempNum -= 400; }
-  if (tempNum >= 100) { result += hundreds[Math.floor(tempNum / 100)]; tempNum %= 100; }
-  if (tempNum === 15) { result += "טו"; } else if (tempNum === 16) { result += "טז"; } else {
-    if (tempNum >= 10) { result += tens[Math.floor(tempNum / 10)]; tempNum %= 10; }
-    if (tempNum > 0) result += units[tempNum];
-  }
-  if (result.length > 1) return result.slice(0, -1) + '״' + result.slice(-1);
-  return result + '׳';
-};
+import Avatar from './Avatar';
+import ImageLightbox from './ImageLightbox';
+import { 
+  getCurrentHebrewDateInfo, 
+  isBirthdayMonthMatch 
+} from '../utils/hebrewDate';
 
 interface StudentListProps {
   students: Student[];
@@ -45,6 +19,117 @@ interface StudentListProps {
   setSearchQuery: (query: string) => void;
   cardScaleLevel: number;
   onScaleChange: (level: number) => void;
+  onRefresh?: () => Promise<void> | void;
+  isRefreshing?: boolean;
+}
+
+// נרמול בסיסי של טקסט עברי: הסרת ניקוד, גרשיים, מקפים והמרת אותיות סופיות
+function normalizeHebrewBasic(text: string): string {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .replace(/[\u0591-\u05C7]/g, '') // הסרת ניקוד
+    .replace(/[\u05F3\u05F4'"`״׳\-–—.,/\\()[\]{}!?:;]/g, '') // הסרת סימני פיסוק וגרשיים
+    .replace(/ך/g, 'כ')
+    .replace(/ם/g, 'מ')
+    .replace(/ן/g, 'נ')
+    .replace(/ף/g, 'פ')
+    .replace(/ץ/g, 'צ')
+    .replace(/וו+/g, 'ו')
+    .replace(/יי+/g, 'י')
+    .trim();
+}
+
+// נרמול שמות נפוצים עם כתיב מלא וחסר (ללא מחיקה גורפת של אותיות)
+function canonicalHebrewName(text: string): string {
+  return text
+    .replace(/^יהונתן$/, 'יונתן')
+    .replace(/^אלעזר$/, 'אליעזר')
+    .replace(/^אראל$/, 'אריאל')
+    .replace(/^דויד$/, 'דוד');
+}
+
+// אלגוריתם לוינשטיין קל-משקל לסובלנות שגיאות כתיב והקלדה
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+
+  const row = Array.from({ length: a.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= b.length; i++) {
+    let prev = i;
+    for (let j = 1; j <= a.length; j++) {
+      const temp = row[j];
+      if (b[i - 1] === a[j - 1]) {
+        row[j] = row[j - 1];
+      } else {
+        row[j] = Math.min(row[j] + 1, prev + 1, row[j - 1] + 1);
+      }
+      prev = temp;
+    }
+    row[0] = i;
+  }
+  return row[a.length];
+}
+
+// בדיקת התאמת מילת חיפוש מול מילת יעד בדיוק גבוה ובלי תוצאות שווא
+function isWordMatch(token: string, word: string): boolean {
+  if (!token || !word) return false;
+
+  // 1. התאמת תת-מחרוזת ישירה (למשל "משה" בתוך "משה", "כה" בתוך "כהן")
+  if (word.includes(token)) return true;
+
+  // 2. נרמול שמות נרדפים ידועים (כתיב מלא/חסר: יהונתן ↔ יונתן)
+  const canonToken = canonicalHebrewName(token);
+  const canonWord = canonicalHebrewName(word);
+  if (canonWord.includes(canonToken) || canonToken.includes(canonWord)) return true;
+
+  // 3. כתיב מלא וחסר מבוקר (הבדל של אות ו/י אחת בתוך המילה, באות ראשונה זהה בלבד)
+  if (
+    token.length >= 4 &&
+    word.length >= 4 &&
+    token[0] === word[0] &&
+    Math.abs(token.length - word.length) <= 1
+  ) {
+    const stripVowels = (s: string) => s[0] + s.slice(1).replace(/[וי]/g, '');
+    if (stripVowels(token) === stripVowels(word)) {
+      return true;
+    }
+  }
+
+  // 4. סובלנות לשגיאת הקלדה אחת (Levenshtein = 1) - אך ורק למילים באורך 5 אותיות ומעלה
+  //    וחובה שהאות הראשונה תהיה זהה לחלוטין (כדי למנוע לחלוטין התאמות שגויות בין שמות קצרים כמו "משה" ו-"ישי")
+  if (token.length >= 5 && word.length >= 5 && token[0] === word[0]) {
+    if (Math.abs(token.length - word.length) <= 1 && levenshtein(token, word) <= 1) {
+      return true;
+    }
+    // תחילית במילה ארוכה יותר
+    if (word.length > token.length) {
+      const wordPrefix = word.slice(0, token.length);
+      if (levenshtein(token, wordPrefix) <= 1) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// בדיקת התאמת טוקן חיפוש מול מילות המטרה של התלמיד
+function matchesQueryToken(token: string, targetWords: string[]): boolean {
+  const normToken = normalizeHebrewBasic(token);
+  if (!normToken) return true;
+
+  for (const word of targetWords) {
+    const normWord = normalizeHebrewBasic(word);
+    if (!normWord) continue;
+
+    if (isWordMatch(normToken, normWord)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 const StudentList: React.FC<StudentListProps> = ({ 
@@ -54,118 +139,369 @@ const StudentList: React.FC<StudentListProps> = ({
   searchQuery, 
   setSearchQuery,
   cardScaleLevel,
-  onScaleChange
+  onScaleChange,
+  onRefresh,
+  isRefreshing = false
 }) => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [lightboxStudent, setLightboxStudent] = useState<Student | null>(null);
 
-  const currentHebrewDate = useMemo(() => {
-    const now = new Date();
-    const parts = new Intl.DateTimeFormat('he-u-ca-hebrew', { day: 'numeric', month: 'long', year: 'numeric' }).formatToParts(now);
-    const dayVal = parseInt(parts.find(p => p.type === 'day')?.value || "0");
-    const monthVal = parts.find(p => p.type === 'month')?.value || "";
-    const yearVal = parseInt(parts.find(p => p.type === 'year')?.value || "0");
-    const cleanMonth = monthVal.startsWith('ב') ? monthVal.substring(1) : monthVal;
-    return `${getHebrewGematria(dayVal)} ${cleanMonth} ${getHebrewGematria(yearVal)}`;
-  }, []);
+  // מנגנון משיכה לרענון (Pull to Refresh)
+  const mainRef = useRef<HTMLElement>(null);
+  const [pullY, setPullY] = useState(0);
+  const [isInternalRefreshing, setIsInternalRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+  const isPullingRef = useRef(false);
+  const hasVibratedRef = useRef(false);
 
-  const currentHebrewMonth = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat('he-u-ca-hebrew', { month: 'long' });
-    const monthPart = formatter.format(new Date());
-    return monthPart.startsWith('ב') ? monthPart.substring(1) : monthPart;
-  }, []);
+  const refreshing = isRefreshing || isInternalRefreshing;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (refreshing) return;
+    const scrollTop = mainRef.current ? mainRef.current.scrollTop : 0;
+    if (scrollTop <= 0) {
+      touchStartY.current = e.touches[0].clientY;
+      isPullingRef.current = true;
+      hasVibratedRef.current = false;
+    } else {
+      isPullingRef.current = false;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isPullingRef.current || refreshing) return;
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - touchStartY.current;
+
+    const scrollTop = mainRef.current ? mainRef.current.scrollTop : 0;
+    if (scrollTop <= 0 && diff > 0) {
+      // התנגדות קפיצית
+      const pull = Math.min(80, diff * 0.42);
+      setPullY(pull);
+
+      if (pull >= 52 && !hasVibratedRef.current) {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          try {
+            navigator.vibrate(15);
+          } catch {
+            // ignore
+          }
+        }
+        hasVibratedRef.current = true;
+      }
+    } else {
+      setPullY(0);
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (!isPullingRef.current || refreshing) return;
+    isPullingRef.current = false;
+
+    if (pullY >= 52 && onRefresh) {
+      setIsInternalRefreshing(true);
+      setPullY(48); // החזקת המחוון פעיל בעת סנכרון
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try {
+          navigator.vibrate([10, 25]);
+        } catch {
+          // ignore
+        }
+      }
+      try {
+        await onRefresh();
+      } finally {
+        setIsInternalRefreshing(false);
+        setPullY(0);
+      }
+    } else {
+      setPullY(0);
+    }
+  };
+
+  const dateInfo = useMemo(() => getCurrentHebrewDateInfo(), []);
 
   const classes = useMemo(() => {
     const uniqueClasses = new Set(students.map(s => s.class).filter(Boolean));
     return ['all', ...Array.from(uniqueClasses).sort()];
   }, [students]);
 
+  // מנגנון חיפוש גמיש (Fuzzy Search) מותאם עברית
   const filteredStudents = useMemo(() => {
-    const cleanSearchQuery = searchQuery.replace(/\D/g, ''); // Extract only digits for phone search
+    const query = (searchQuery || '').trim();
+    if (!query) {
+      return selectedClass === 'all' 
+        ? students 
+        : students.filter(s => s.class === selectedClass);
+    }
+
+    const cleanQueryDigits = query.replace(/\D/g, '');
+    const tokens = query.split(/\s+/).filter(Boolean);
+
     return students.filter((student) => {
-      const nameMatches = student.full_name.toLowerCase().includes(searchQuery.toLowerCase());
-      const studentPhoneClean = student.phone_number.replace(/\D/g, '');
-      const phoneMatches = cleanSearchQuery && studentPhoneClean.includes(cleanSearchQuery) || student.phone_number.includes(searchQuery);
-      
-      const matchesSearch = nameMatches || phoneMatches;
-      const matchesClass = selectedClass === 'all' || student.class === selectedClass;
-      return matchesSearch && matchesClass;
+      // סינון לפי מחזור/כיתה
+      if (selectedClass !== 'all' && student.class !== selectedClass) {
+        return false;
+      }
+
+      // חיפוש ספרות נקי למספרי טלפון
+      if (cleanQueryDigits.length >= 3) {
+        const studentPhoneClean = (student.phone_number || '').replace(/\D/g, '');
+        if (studentPhoneClean.includes(cleanQueryDigits)) return true;
+      }
+
+      // מילות המטרה מתוך פרטי התלמיד
+      const studentWords = [
+        ...(student.full_name || '').split(/\s+/),
+        student.class || '',
+        ...(student.notes || '').split(/\s+/)
+      ].filter(Boolean);
+
+      // כל מילת חיפוש חייבת להתאים
+      return tokens.every(token => {
+        const tokenDigits = token.replace(/\D/g, '');
+        if (tokenDigits.length >= 3) {
+          const studentPhoneClean = (student.phone_number || '').replace(/\D/g, '');
+          if (studentPhoneClean.includes(tokenDigits)) return true;
+        }
+        return matchesQueryToken(token, studentWords);
+      });
     });
   }, [students, searchQuery, selectedClass]);
 
+  // פתיחת וואטסאפ ללא מעבר לעמוד
+  const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
+    e.stopPropagation();
+    let cleanNum = phone.replace(/\D/g, '');
+    if (cleanNum.startsWith('0')) {
+      cleanNum = '972' + cleanNum.substring(1);
+    }
+    window.open(`https://wa.me/${cleanNum}`, '_blank');
+  };
+
+  // חיוג טלפוני ללא מעבר לעמוד
+  const handleCallClick = (e: React.MouseEvent, phone: string) => {
+    e.stopPropagation();
+    window.location.href = `tel:${phone}`;
+  };
+
+  // הגדלת תמונה בלחיצה ישירה מהכרטיס ללא מעבר לעמוד
+  const handleAvatarClick = (e: React.MouseEvent, student: Student) => {
+    e.stopPropagation();
+    setLightboxStudent(student);
+  };
+
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden bg-[#FAF8F5] dark:bg-stone-950 text-stone-900 dark:text-stone-100 transition-colors duration-200">
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
         cardScaleLevel={cardScaleLevel}
         onScaleChange={onScaleChange}
       />
+
+      {/* מודאל תמונה בגודל מלא (Lightbox) */}
+      <ImageLightbox 
+        student={lightboxStudent} 
+        onClose={() => setLightboxStudent(null)} 
+      />
       
-      {/* כותרת קבועה בראש הדף */}
-      <div className="flex-shrink-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm border-b border-gray-100 dark:border-gray-700 p-4 space-y-3 z-10 transition-colors duration-200">
-        <div className="flex items-center justify-center relative min-h-[44px]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white leading-tight">{APP_CONFIG.NAME}</h1>
-            <p className="text-[14px] text-blue-600 dark:text-blue-400 font-bold mt-0.5 tracking-wide">{currentHebrewDate}</p>
+      {/* סרגל עליון מקובע */}
+      <header className="flex-shrink-0 bg-[#FAF8F5]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-4 pt-3.5 pb-3 space-y-3 z-10">
+        <div className="flex items-center justify-between relative min-h-[44px]">
+          {/* כפתור תפריט צד */}
+          <button 
+            onClick={() => setIsSidebarOpen(true)} 
+            className="w-10 h-10 flex items-center justify-center text-stone-700 dark:text-stone-300 hover:bg-stone-200/60 dark:hover:bg-stone-800 rounded-xl transition-colors active:scale-95"
+            aria-label="תפריט"
+          >
+            <MenuIcon className="w-5 h-5" />
+          </button>
+
+          {/* כותרת המכינה ותאריך עברי */}
+          <div className="text-center flex-1 px-2">
+            <h1 className="text-xl font-heading font-bold tracking-tight text-stone-900 dark:text-stone-100 leading-tight">
+              {APP_CONFIG.NAME}
+            </h1>
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mt-0.5 tracking-wide">
+              {dateInfo.fullFormatted}
+            </p>
           </div>
-          <button onClick={() => setIsSidebarOpen(true)} className="absolute right-0 p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"><MenuIcon className="w-6 h-6" /></button>
+
+          <div className="w-10" aria-hidden="true" />
         </div>
-        <div className="relative group">
+
+        {/* שורת חיפוש מהירה וסובלנית לשגיאות */}
+        <div className="relative">
           <input 
             type="text" 
-            placeholder="חיפוש לפי שם או טלפון..." 
+            placeholder="חיפוש לפי שם , טלפון..." 
             value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)} 
-            className="w-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-xl py-3 pr-10 pl-4 outline-none focus:outline-none border-2 border-transparent focus:border-blue-500 focus:ring-0 placeholder-gray-400 dark:placeholder-gray-500 text-right" 
+            className="w-full bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 rounded-xl py-2.5 pr-10 pl-9 text-sm outline-none border border-stone-200 dark:border-stone-800 focus:border-amber-600 focus:ring-1 focus:ring-amber-600/30 transition-all text-right shadow-sm" 
           />
-          <div className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"><SearchIcon className="w-5 h-5" /></div>
-          {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1"><XIcon className="w-4 h-4" /></button>}
-        </div>
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 items-center">
-          {classes.map((cls) => (
-            <button key={cls} onClick={() => setSelectedClass(cls)} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedClass === cls ? 'bg-blue-600 text-white shadow-md' : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
-              {cls === 'all' ? 'כולם' : cls}
+          <div className="absolute top-1/2 right-3 -translate-y-1/2 text-stone-400 dark:text-stone-500 pointer-events-none">
+            <SearchIcon className="w-4 h-4" />
+          </div>
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')} 
+              className="absolute top-1/2 left-2.5 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 p-1"
+              aria-label="נקה חיפוש"
+            >
+              <XIcon className="w-4 h-4" />
             </button>
-          ))}
+          )}
         </div>
-      </div>
 
-      {/* רשימת תלמידים נגללת */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-20 no-scrollbar">
+        {/* טאבים לסינון כיתות/מחזורים */}
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5 items-center">
+          {classes.map((cls) => {
+            const isSelected = selectedClass === cls;
+            return (
+              <button 
+                key={cls} 
+                onClick={() => setSelectedClass(cls)} 
+                className={`whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  isSelected 
+                    ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-sm' 
+                    : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 border border-stone-200/90 dark:border-stone-800 hover:bg-stone-100/70 dark:hover:bg-stone-800'
+                }`}
+              >
+                {cls === 'all' ? 'כל התלמידים' : cls}
+              </button>
+            );
+          })}
+        </div>
+      </header>
+
+      {/* רשימת תלמידים נגללת עם תמיכה במשיכה לרענון */}
+      <main 
+        ref={mainRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5 pb-24 no-scrollbar overscroll-contain"
+      >
+        {/* מחוון משיכה לרענון (Pull to Refresh Indicator) */}
+        <div 
+          className="overflow-hidden transition-all duration-200 flex items-center justify-center pointer-events-none"
+          style={{ 
+            height: refreshing || pullY > 0 ? `${Math.max(pullY, refreshing ? 48 : 0)}px` : '0px',
+            opacity: refreshing || pullY > 0 ? 1 : 0
+          }}
+        >
+          <div className="flex items-center gap-2 py-2 text-stone-600 dark:text-stone-300">
+            <div 
+              className={`w-5 h-5 rounded-full border-2 border-stone-300 dark:border-stone-700 border-t-amber-600 transition-transform ${
+                refreshing ? 'animate-spin' : ''
+              }`}
+              style={{
+                transform: !refreshing ? `rotate(${pullY * 5}deg)` : undefined
+              }}
+            />
+            <span className="text-xs font-medium">
+              {refreshing ? 'מרענן נתונים מ-Google Sheets...' : pullY >= 52 ? 'שחרר לרענון' : 'משוך לרענון'}
+            </span>
+          </div>
+        </div>
+
         {filteredStudents.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400 py-12">
-            <p className="text-lg">לא נמצאו תוצאות</p>
+          <div className="text-center text-stone-500 dark:text-stone-400 py-16 px-4">
+            <p className="text-base font-medium">לא נמצאו תלמידים התואמים לחיפוש</p>
+            <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">בדוק את האיות או נסה לסנן מחזור אחר</p>
           </div>
         ) : (
           filteredStudents.map((student) => {
-            const isBirthday = isBirthdayMatchLocal(student.birthday_hebrew, currentHebrewMonth);
+            const isBirthday = isBirthdayMonthMatch(student.birthday_hebrew, dateInfo.monthName);
+            
             return (
               <div 
                 key={student.id} 
                 onClick={() => navigate(`/student/${student.id}`)} 
-                className="student-card bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center active:scale-[0.98] transition-all cursor-pointer hover:shadow-md"
+                className="student-card bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/80 dark:border-stone-800/90 shadow-sm hover:shadow hover:border-stone-300 dark:hover:border-stone-700 flex items-center justify-between transition-all cursor-pointer group active:scale-[0.99]"
               >
-                <div className="relative flex-shrink-0">
-                  <img src={student.image_url} alt={student.full_name} className="rounded-full object-cover border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 shadow-sm" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?background=random&color=fff&name=${encodeURIComponent(student.full_name)}`; }} />
-                  {isBirthday && (
-                    <div className="absolute -top-1 -right-1 bg-pink-500 text-white p-1 rounded-full shadow-lg border-2 border-white dark:border-gray-800 animate-bounce z-10"><CakeIcon className="w-3.5 h-3.5" /></div>
+                {/* צד ימין: אווטאר/תמונה שניתנת להגדלה + פרטי התלמיד */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  {/* לחיצה ישירה על האווטאר פותחת Lightbox */}
+                  <div 
+                    onClick={(e) => handleAvatarClick(e, student)}
+                    className="relative flex-shrink-0 cursor-zoom-in active:scale-95 transition-transform"
+                    title="הגדל תמונה"
+                  >
+                    <Avatar 
+                      name={student.full_name} 
+                      imageUrl={student.image_url} 
+                      sizeClassName="w-12 h-12 text-sm"
+                      className="shadow-sm ring-1 ring-stone-900/5 dark:ring-stone-100/10"
+                    />
+                    {isBirthday && (
+                      <div 
+                        className="absolute -top-1 -right-1 bg-amber-500 text-stone-950 p-1 rounded-full shadow border-2 border-white dark:border-stone-900"
+                        title="חוגג יום הולדת החודש!"
+                      >
+                        <CakeIcon className="w-3 h-3" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* שם ומחזור */}
+                  <div className="min-w-0 text-right">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-heading font-bold text-stone-900 dark:text-stone-100 truncate text-[15px] leading-tight">
+                        {student.full_name}
+                      </h3>
+                      {isBirthday && (
+                        <span className="birthday-tag text-amber-700 dark:text-amber-400 font-semibold px-1.5 py-0.5 bg-amber-50 dark:bg-amber-950/50 border border-amber-200/60 dark:border-amber-800/50 rounded text-[10px]">
+                          מזל טוב
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400 mt-1">
+                      {student.class && (
+                        <span>{student.class}</span>
+                      )}
+                      {student.class && student.phone_number && (
+                        <span aria-hidden="true">·</span>
+                      )}
+                      {student.phone_number && (
+                        <span className="dir-ltr font-mono">{student.phone_number}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* צד שמאל: פעולות מהירות (חיוג מיידי + WhatsApp) */}
+                <div className="flex items-center gap-1 shrink-0 mr-2" onClick={(e) => e.stopPropagation()}>
+                  {student.phone_number && (
+                    <>
+                      <button 
+                        onClick={(e) => handleCallClick(e, student.phone_number)}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors active:scale-90"
+                        title={`חייג אל ${student.full_name}`}
+                        aria-label={`חייג אל ${student.full_name}`}
+                      >
+                        <PhoneIcon className="w-4 h-4" />
+                      </button>
+
+                      <button 
+                        onClick={(e) => handleWhatsAppClick(e, student.phone_number)}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition-colors active:scale-90"
+                        title={`שלח וואטסאפ ל${student.full_name}`}
+                        aria-label={`שלח וואטסאפ ל${student.full_name}`}
+                      >
+                        <WhatsappIcon className="w-4 h-4" />
+                      </button>
+                    </>
                   )}
                 </div>
-                <div className="flex-1 min-w-0 text-right">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-gray-800 dark:text-gray-100 truncate leading-tight transition-all duration-200">{student.full_name}</h3>
-                    {student.class && <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-[10px] px-2 py-0.5 rounded-full font-bold">{student.class}</span>}
-                    {isBirthday && <span className="birthday-tag text-pink-500 font-bold animate-pulse px-1.5 py-0.5 bg-pink-50 dark:bg-pink-900/20 rounded-full transition-all duration-200">מזל טוב!</span>}
-                  </div>
-                  <p className="text-gray-500 dark:text-gray-400 truncate dir-ltr transition-all duration-200">{student.phone_number}</p>
-                </div>
-                <div className="text-gray-300 dark:text-gray-600"><ArrowRightIcon className="w-5 h-5 transform rotate-180 text-blue-500/50" /></div>
               </div>
             );
           })
         )}
-      </div>
+      </main>
     </div>
   );
 };

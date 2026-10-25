@@ -5,6 +5,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/', // עודכן עבור Vercel
+  server: {
+    host: '0.0.0.0',
+    port: 3000
+  },
   plugins: [
     react(),
     VitePWA({

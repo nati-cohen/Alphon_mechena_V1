@@ -1,8 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
-import { XIcon, MoreVerticalIcon } from './Icons';
+import { XIcon } from './Icons';
 
-// כלי עזר לבדיקה האם האפליקציה כבר מותקנת על המכשיר
 const isStandalone = () => {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -11,40 +9,46 @@ const isStandalone = () => {
   );
 };
 
-const InstallPwa: React.FC = () => {
+const DISMISSED_KEY = 'pwa_prompt_dismissed_v2';
+
+export const InstallPwa: React.FC = () => {
   const [supportsPWA, setSupportsPWA] = useState(false);
   const [promptInstall, setPromptInstall] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const [showIosTip, setShowIosTip] = useState(false);
 
   useEffect(() => {
-    // במידה וכבר מותקן, אין צורך להציג את ההנחיה
     if (isStandalone()) return;
 
-    // בדיקת אחסון הסשן כדי לא להציק למשתמש שסגר את ההודעה באותו הביקור
-    const hasClosed = sessionStorage.getItem('pwa-prompt-closed');
-    if (hasClosed) return;
+    try {
+      if (localStorage.getItem(DISMISSED_KEY) === 'true') {
+        return;
+      }
+    } catch {
+      // In case localStorage is blocked
+    }
 
-    // טיימר להצגת המודאל במידה והדפדפן לא הפעיל את אירוע ההתקנה אוטומטית
-    const timer = setTimeout(() => {
-      setShowModal(true);
-    }, 2500);
-
-    // טיפול בהנחיית התקנה לאנדרואיד / מחשב
-    const handler = (e: any) => {
-      e.preventDefault();
-      setSupportsPWA(true);
-      setPromptInstall(e);
-      setShowModal(true);
-      clearTimeout(timer); // האירוע התקבל, אין צורך בטיימר המאולץ
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-
-    // זיהוי מכשירי iOS
+    // זיהוי iOS
     const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     if (isIosDevice) {
       setIsIOS(true);
     }
+
+    // הצגת הבאנר בעדינות לאחר 3 שניות של גלישה פעילה
+    const timer = setTimeout(() => {
+      setShowBanner(true);
+    }, 3000);
+
+    const handler = (e: any) => {
+      e.preventDefault();
+      setSupportsPWA(true);
+      setPromptInstall(e);
+      setShowBanner(true);
+      clearTimeout(timer);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
@@ -53,99 +57,71 @@ const InstallPwa: React.FC = () => {
   }, []);
 
   const handleClose = () => {
-    setShowModal(false);
-    sessionStorage.setItem('pwa-prompt-closed', 'true');
-  };
-
-  const handleInstallClick = (evt: React.MouseEvent) => {
-    evt.preventDefault();
-    if (!promptInstall) {
-      return;
+    setShowBanner(false);
+    try {
+      localStorage.setItem(DISMISSED_KEY, 'true');
+    } catch {
+      // Ignore
     }
-    promptInstall.prompt();
-    promptInstall.userChoice.then((choiceResult: any) => {
-      if (choiceResult.outcome === 'accepted') {
-        setShowModal(false);
-      }
-    });
   };
 
-  if (!showModal) return null;
+  const handleInstallClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (supportsPWA && promptInstall) {
+      promptInstall.prompt();
+      promptInstall.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          handleClose();
+        }
+      });
+    } else if (isIOS) {
+      setShowIosTip(!showIosTip);
+    }
+  };
+
+  if (!showBanner) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center pointer-events-none">
-      {/* רקע מעומעם */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-300 animate-fadeIn"
-        onClick={handleClose}
-      />
-      
-      {/* כרטיס המידע */}
-      <div className="bg-white dark:bg-gray-800 w-full max-w-sm m-4 p-5 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 pointer-events-auto animate-slideUp transform transition-all relative">
-        
-        {/* כפתור סגירה */}
-        <button 
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-full transition-colors"
-        >
-          <XIcon className="w-5 h-5" />
-        </button>
+    <div className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-3 sm:max-w-sm z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/90 dark:border-stone-800 shadow-xl rounded-2xl p-3 flex flex-col gap-2 transition-all animate-slideUp">
+      <div className="flex items-center gap-3">
+        <img 
+          src="https://i.postimg.cc/6QtbGKVS/lwgw-mkynh.jpg" 
+          alt="לוגו המכינה" 
+          className="w-10 h-10 rounded-xl object-cover border border-stone-200 dark:border-stone-800 shrink-0 shadow-sm"
+        />
 
-        <div className="flex flex-col items-center text-center mt-2">
-           <img 
-             src="https://i.postimg.cc/6QtbGKVS/lwgw-mkynh.jpg" 
-             alt="Logo" 
-             className="w-20 h-20 rounded-2xl shadow-lg mb-4" 
-           />
-           
-           <h3 className="font-bold text-gray-900 dark:text-white text-xl mb-1">התקנת האפליקציה</h3>
-           <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 px-4">
-             התקן את אלפון מכינת בית אל לגישה מהירה ונוחה ישירות ממסך הבית שלך
-           </p>
+        <div className="flex-1 min-w-0 text-right">
+          <h4 className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
+            התקנת אלפון בית אל
+          </h4>
+          <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
+            גישה מהירה ישירות ממסך הבית
+          </p>
+        </div>
 
-           {/* מקרה 1: הדפדפן תומך בהתקנה אוטומטית (בעיקר כרום באנדרואיד) */}
-           {supportsPWA && (
-             <button
-               onClick={handleInstallClick}
-               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-             >
-               <span>התקן עכשיו</span>
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                 <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-               </svg>
-             </button>
-           )}
-
-           {/* מקרה 2: הוראות ידניות ל-iOS */}
-           {isIOS && !supportsPWA && (
-             <div className="w-full bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-4 text-sm text-gray-600 dark:text-gray-300 text-right">
-                <div className="flex items-center gap-3 mb-3">
-                   <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 bg-white dark:bg-gray-600 rounded-lg shadow-sm font-bold text-blue-600 dark:text-blue-300">1</span>
-                   <span>לחץ על כפתור השיתוף <span className="inline-block align-middle mx-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span> למטה</span>
-                </div>
-                <div className="flex items-center gap-3">
-                   <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 bg-white dark:bg-gray-600 rounded-lg shadow-sm font-bold text-blue-600 dark:text-blue-300">2</span>
-                   <span>גלול ובחר <strong>"הוסף למסך הבית"</strong> (Add to Home Screen)</span>
-                </div>
-             </div>
-           )}
-
-           {/* מקרה 3: הוראות ידניות לאנדרואיד/כרום (במידה וההתקנה האוטומטית נכשלה) */}
-           {!supportsPWA && !isIOS && (
-             <div className="w-full bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-4 text-sm text-gray-600 dark:text-gray-300 text-right">
-                <div className="flex items-center gap-3 mb-3">
-                   <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 bg-white dark:bg-gray-600 rounded-lg shadow-sm font-bold text-blue-600 dark:text-blue-300">1</span>
-                   <span>לחץ על כפתור התפריט <span className="inline-block align-middle mx-1 bg-white dark:bg-gray-600 rounded p-0.5"><MoreVerticalIcon className="w-3.5 h-3.5" /></span> בדפדפן</span>
-                </div>
-                <div className="flex items-center gap-3">
-                   <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 bg-white dark:bg-gray-600 rounded-lg shadow-sm font-bold text-blue-600 dark:text-blue-300">2</span>
-                   <span>בחר ב-<strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong></span>
-                </div>
-             </div>
-           )}
-
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={handleInstallClick}
+            className="bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all active:scale-95 shadow-sm"
+          >
+            {isIOS && !supportsPWA ? 'כיצד להתקין?' : 'התקן'}
+          </button>
+          
+          <button
+            onClick={handleClose}
+            className="p-1.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 rounded-lg transition-colors"
+            aria-label="סגור"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      {showIosTip && isIOS && (
+        <div className="text-[11px] text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800/80 p-2.5 rounded-xl text-right leading-relaxed border border-stone-200/70 dark:border-stone-700">
+          לחץ על כפתור השיתוף בתחתית הדפדפן (ריבוע עם חץ) ובחר <strong>״הוסף למסך הבית״</strong>.
+        </div>
+      )}
     </div>
   );
 };

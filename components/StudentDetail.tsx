@@ -1,48 +1,46 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Student } from '../types';
-import { PhoneIcon, WhatsappIcon, CopyIcon, ArrowRightIcon, CakeIcon, XIcon, UserPlusIcon } from './Icons';
+import { 
+  PhoneIcon, WhatsappIcon, CopyIcon, ArrowRightIcon, 
+  CakeIcon, CheckIcon, UserPlusIcon, ShareIcon 
+} from './Icons';
+import Avatar from './Avatar';
+import ImageLightbox from './ImageLightbox';
+import { APP_CONFIG } from '../constants';
 
 interface StudentDetailProps {
   students: Student[];
 }
 
-const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
+export const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [student, setStudent] = useState<Student | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // מצב לניהול המודאל של התמונה
+  const [shareFeedback, setShareFeedback] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   useEffect(() => {
     const found = students.find((s) => s.id === id);
     setStudent(found || null);
   }, [id, students]);
 
-  // מניעת גלילה של הדף כשהתמונה מוגדלת
-  useEffect(() => {
-    if (isImageModalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [isImageModalOpen]);
-
   if (!student) {
     return (
-      <div className="h-screen flex items-center justify-center text-gray-500 dark:text-gray-400">
-        טוען תלמיד...
+      <div className="h-screen flex items-center justify-center bg-[#FAF8F5] dark:bg-stone-950 text-stone-500">
+        טוען פרטי תלמיד...
       </div>
     );
   }
 
   const handleCall = () => {
-    window.open(`tel:${student.phone_number}`, '_self');
+    if (!student.phone_number) return;
+    window.location.href = `tel:${student.phone_number}`;
   };
 
   const handleWhatsApp = () => {
+    if (!student.phone_number) return;
     let cleanNum = student.phone_number.replace(/\D/g, '');
     if (cleanNum.startsWith('0')) {
       cleanNum = '972' + cleanNum.substring(1);
@@ -51,170 +49,259 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
   };
 
   const handleCopy = () => {
+    if (!student.phone_number) return;
     navigator.clipboard.writeText(student.phone_number).then(() => {
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 2000);
     });
   };
 
+  const handleShare = async () => {
+    if (!student) return;
+    const shareText = [
+      student.full_name,
+      student.phone_number
+    ].filter(Boolean).join('\n');
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: student.full_name,
+          text: shareText,
+        });
+        return;
+      } catch (err: any) {
+        if (err.name === 'AbortError') return; // המשתמש ביטל את תפריט השיתוף
+      }
+    }
+
+    // Fallback: העתקה ללוח והצגת חיווי ברור
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setShareFeedback(true);
+      setTimeout(() => setShareFeedback(false), 2400);
+    } catch (e) {
+      console.warn("Failed to copy to clipboard for share:", e);
+    }
+  };
+
   const handleSaveContact = () => {
     if (!student) return;
-    
-    const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${student.full_name}\nTEL;TYPE=CELL:${student.phone_number}\nEND:VCARD`;
-    
-    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+    const cleanPhone = student.phone_number ? student.phone_number.trim() : '';
+    const noteText = `${student.class ? `${student.class} - ` : ''}מכינת בית אל`;
+    const vcard = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN;CHARSET=UTF-8:${student.full_name}`,
+      `N;CHARSET=UTF-8:${student.full_name};;;;`,
+      cleanPhone ? `TEL;TYPE=CELL,VOICE:${cleanPhone}` : '',
+      `NOTE;CHARSET=UTF-8:${noteText}`,
+      'END:VCARD'
+    ].filter(Boolean).join('\r\n');
+
+    // הוספת BOM (\uFEFF) יחד עם הגדרת CHARSET=UTF-8 מבטיחה תצוגה נקייה ללא ג'יבריש בעברית
+    const blob = new Blob(['\uFEFF' + vcard], { type: 'text/vcard;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    
     const link = document.createElement('a');
     link.href = url;
     link.download = `${student.full_name}.vcf`;
     document.body.appendChild(link);
     link.click();
-    
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-200">
-      {/* מודאל תמונה מוגדלת */}
-      {isImageModalOpen && (
-        <div 
-          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setIsImageModalOpen(false)}
-        >
-          <button 
-            className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors"
-            onClick={() => setIsImageModalOpen(false)}
-          >
-            <XIcon className="w-8 h-8" />
-          </button>
-          <div className="max-w-full max-h-[80vh] relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <img 
-              src={student.image_url} 
-              alt={student.full_name} 
-              className="rounded-2xl w-full h-full object-contain border-4 border-white/10"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?background=random&color=fff&name=${encodeURIComponent(student.full_name)}`;
-              }}
-            />
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen bg-[#FAF8F5] dark:bg-stone-950 text-stone-900 dark:text-stone-100 flex flex-col transition-colors duration-200">
+      {/* מודאל תמונה מוגדלת (Lightbox) */}
+      <ImageLightbox
+        student={isLightboxOpen ? student : null}
+        onClose={() => setIsLightboxOpen(false)}
+      />
 
-      <div className="bg-white dark:bg-gray-800 p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10 transition-colors">
+      {/* סרגל ניווט עליון */}
+      <header className="bg-[#FAF8F5]/90 dark:bg-stone-950/90 backdrop-blur-md px-4 py-3.5 border-b border-stone-200/80 dark:border-stone-800 flex items-center gap-3 sticky top-0 z-10">
         <button 
           onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors text-stone-700 dark:text-stone-300 active:scale-95"
+          aria-label="חזרה לרשימה"
         >
-          <ArrowRightIcon className="w-6 h-6 text-gray-700 dark:text-gray-200" />
+          <ArrowRightIcon className="w-5 h-5" />
         </button>
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">פרטי איש קשר</h2>
-      </div>
+        <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 font-heading">
+          פרטי איש קשר
+        </h2>
+      </header>
 
-      <div className="flex-1 p-5 flex flex-col items-center animate-fadeIn">
-        <div className="relative mb-4">
-          <div 
-            className="w-28 h-28 rounded-full p-1 bg-white dark:bg-gray-800 shadow-lg cursor-pointer transform active:scale-95 transition-all hover:ring-4 hover:ring-blue-500/20"
-            onClick={() => setIsImageModalOpen(true)} // לחיצה להגדלה
-          >
-             <img 
-              src={student.image_url} 
-              alt={student.full_name} 
-              className="w-full h-full rounded-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?background=random&color=fff&name=${encodeURIComponent(student.full_name)}`;
-              }}
-            />
+      {/* גוף העמוד */}
+      <main className="flex-1 px-5 py-6 flex flex-col items-center max-w-md mx-auto w-full animate-fadeIn pb-24 relative">
+        {/* הודעת חיווי צפה בעת שיתוף/העתקה */}
+        {shareFeedback && (
+          <div className="fixed top-16 z-50 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 px-4 py-2 rounded-full text-xs font-semibold shadow-xl flex items-center gap-2 animate-bounce">
+            <CheckIcon className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
+            <span>הועתק לשיתוף!</span>
           </div>
-          <div className="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full border-2 border-white dark:border-gray-800 shadow-md">
-            <SearchIcon className="w-3 h-3" />
-          </div>
+        )}
+
+        {/* 1. Hero Section: תמונת פרופיל מוגדלת וכותרת */}
+        <div 
+          onClick={() => setIsLightboxOpen(true)}
+          className="relative mb-4 cursor-zoom-in group active:scale-95 transition-transform"
+          title="לחץ להגדלת תמונה"
+        >
+          <Avatar 
+            name={student.full_name}
+            imageUrl={student.image_url}
+            sizeClassName="w-28 h-28 sm:w-32 sm:h-32 text-3xl sm:text-4xl"
+            className="ring-4 ring-stone-200/90 dark:ring-stone-800 shadow-xl"
+          />
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1 text-center">{student.full_name}</h1>
-        <div className="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 px-3.5 py-0.5 rounded-full text-xs font-medium mb-5">
-          {student.class}
-        </div>
+        <h1 className="text-2xl sm:text-3xl font-heading font-bold text-stone-900 dark:text-stone-100 text-center mb-2 leading-tight">
+          {student.full_name}
+        </h1>
 
-        <div className="grid grid-cols-2 gap-3 w-full max-w-md mb-5">
-          <button 
-            onClick={handleCall}
-            className="flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
-          >
-            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+        {student.class && (
+          <span className="text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-800/60 px-4 py-1 rounded-full mb-6 shadow-xs">
+            {student.class}
+          </span>
+        )}
+
+        {/* 2. פיצול כפתורים להיררכיה ברורה */}
+        <div className="w-full space-y-2.5 mb-6">
+          {/* שתי פעולות ראשיות (Hero Actions) - 50% כל אחת */}
+          <div className="grid grid-cols-2 gap-3 w-full">
+            {/* חיוג מיידי */}
+            <button 
+              onClick={handleCall}
+              className="py-3.5 px-4 rounded-2xl bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 hover:bg-stone-800 dark:hover:bg-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 font-semibold text-sm"
+              title="חיוג מיידי"
+            >
               <PhoneIcon className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">חיוג</span>
-          </button>
+              <span>חיוג</span>
+            </button>
 
-          <button 
-            onClick={handleWhatsApp}
-            className="flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
-          >
-            <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+            {/* וואטסאפ */}
+            <button 
+              onClick={handleWhatsApp}
+              className="py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 font-semibold text-sm"
+              title="שליחת הודעה בוואטסאפ"
+            >
               <WhatsappIcon className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">וואטסאפ</span>
-          </button>
-
-          <button 
-            onClick={handleCopy}
-            className="relative flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
-          >
-             <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-              <CopyIcon className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
-              {copyFeedback ? 'הועתק!' : 'העתק מס׳'}
-            </span>
-          </button>
-
-          <button 
-            onClick={handleSaveContact}
-            className="flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
-          >
-            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
-              <UserPlusIcon className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">שמור איש קשר</span>
-          </button>
-        </div>
-
-        <div className="w-full max-w-md space-y-4">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
-             <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1 text-right">מספר טלפון</label>
-             <p className="text-lg font-medium text-gray-800 dark:text-gray-100 dir-ltr text-right">{student.phone_number}</p>
+              <span>וואטסאפ</span>
+            </button>
           </div>
 
+          {/* שלוש פעולות משניות בשורה קומפקטית שווה */}
+          <div className="grid grid-cols-3 gap-2.5 w-full">
+            {/* העתקת מספר */}
+            <button 
+              onClick={handleCopy}
+              className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/90 shadow-sm active:scale-95 hover:border-stone-300 dark:hover:border-stone-700 transition-all text-stone-700 dark:text-stone-300"
+              title="העתק מספר טלפון"
+            >
+              <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-700 dark:text-stone-300">
+                {copyFeedback ? <CheckIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <CopyIcon className="w-4 h-4" />}
+              </div>
+              <span className="text-[11px] font-medium">
+                {copyFeedback ? 'הועתק!' : 'העתק מספר'}
+              </span>
+            </button>
+
+            {/* שתף איש קשר */}
+            <button 
+              onClick={handleShare}
+              className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/90 shadow-sm active:scale-95 hover:border-stone-300 dark:hover:border-stone-700 transition-all text-stone-700 dark:text-stone-300"
+              title="שתף איש קשר"
+            >
+              <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-700 dark:text-amber-400">
+                {shareFeedback ? <CheckIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <ShareIcon className="w-4 h-4" />}
+              </div>
+              <span className="text-[11px] font-medium">
+                {shareFeedback ? 'שותף!' : 'שתף איש קשר'}
+              </span>
+            </button>
+
+            {/* שמור לטלפון */}
+            <button 
+              onClick={handleSaveContact}
+              className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/90 shadow-sm active:scale-95 hover:border-stone-300 dark:hover:border-stone-700 transition-all text-stone-700 dark:text-stone-300"
+              title="שמור לטלפון (vCard)"
+            >
+              <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-700 dark:text-stone-300">
+                <UserPlusIcon className="w-4 h-4" />
+              </div>
+              <span className="text-[11px] font-medium">שמור לטלפון</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 3. כרטיס מידע מרכזי מאוחד (Unified Info Card) */}
+        <div className="w-full bg-white dark:bg-stone-900 rounded-3xl border border-stone-200/80 dark:border-stone-800/90 shadow-sm overflow-hidden divide-y divide-stone-100 dark:divide-stone-800/80">
+          {/* שורת טלפון */}
+          <div className="p-4 flex items-center justify-between gap-3">
+            <div className="text-right flex-1 min-w-0">
+              <span className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mb-0.5">
+                מספר טלפון
+              </span>
+              <p className="font-mono text-lg font-bold text-stone-900 dark:text-stone-100 dir-ltr text-right truncate">
+                {student.phone_number || 'לא מוגדר'}
+              </p>
+            </div>
+            {student.phone_number && (
+              <div className="flex items-center gap-1 shrink-0">
+                <button 
+                  onClick={handleCopy}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors active:scale-90"
+                  title="העתק מספר"
+                  aria-label="העתק מספר טלפון"
+                >
+                  {copyFeedback ? <CheckIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <CopyIcon className="w-4 h-4" />}
+                </button>
+                <button 
+                  onClick={handleCall}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors active:scale-90"
+                  title="חיוג"
+                  aria-label="חיוג למספר"
+                >
+                  <PhoneIcon className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* שורת יום הולדת עברי */}
           {student.birthday_hebrew && (
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors flex items-center justify-between">
-               <div className="text-right">
-                  <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">תאריך יום הולדת עברי</label>
-                  <p className="text-lg font-bold text-pink-600 dark:text-pink-400">{student.birthday_hebrew}</p>
-               </div>
-               <CakeIcon className="w-8 h-8 text-pink-100 dark:text-gray-700" />
+            <div className="p-4 flex items-center justify-between gap-3">
+              <div className="text-right flex-1 min-w-0">
+                <span className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mb-0.5">
+                  תאריך יום הולדת עברי
+                </span>
+                <p className="text-base font-semibold text-amber-600 dark:text-amber-400 truncate">
+                  {student.birthday_hebrew}
+                </p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <CakeIcon className="w-5 h-5" />
+              </div>
             </div>
           )}
 
+          {/* שורת הערות ותפקיד */}
           {student.notes && (
-             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
-                <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1 text-right">הערות</label>
-                <p className="text-base text-gray-700 dark:text-gray-200 leading-relaxed text-right">{student.notes}</p>
-             </div>
+            <div className="p-4 text-right">
+              <span className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mb-1">
+                הערות ותפקיד
+              </span>
+              <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed whitespace-pre-line">
+                {student.notes}
+              </p>
+            </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 };
-
-// ייבוא אייקון חיפוש לשימוש בתוך הרכיב
-const SearchIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-  </svg>
-);
 
 export default StudentDetail;

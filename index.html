@@ -1,37 +1,39 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#FAF8F5" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/6QtbGKVS/lwgw-mkynh.jpg">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/6QtbGKVS/lwgw-mkynh.jpg">
-    <!-- Manifest link is injected automatically by Vite -->
-
-    <meta name="apple-mobile-web-app-title" content="מכינת בית אל">
+    <meta name="apple-mobile-web-app-title" content="אלפון מכינת בית אל">
     <title>אלפון מכינת בית אל</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Heebo', 'sans-serif'],
+              sans: ['Heebo', 'system-ui', 'sans-serif'],
+              heading: ['Rubik', 'sans-serif'],
             },
             colors: {
-              primary: '#3b82f6',
-              secondary: '#64748b',
+              brand: {
+                DEFAULT: '#1c1917',
+                warm: '#FAF8F5',
+              }
             },
             animation: {
-              fadeIn: 'fadeIn 0.3s ease-out',
-              slideUp: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              fadeIn: 'fadeIn 0.25s ease-out',
+              slideUp: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
             },
             keyframes: {
               fadeIn: {
@@ -39,7 +41,7 @@
                 '100%': { opacity: '1' },
               },
               slideUp: {
-                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '0%': { transform: 'translateY(16px)', opacity: '0' },
                 '100%': { transform: 'translateY(0)', opacity: '1' },
               }
             }
@@ -65,19 +67,13 @@
       }
 
       .student-card h3 {
-        font-size: calc(1.125rem * var(--card-scale));
+        font-size: calc(1rem * var(--card-scale));
         transition: font-size 0.2s ease;
       }
 
       .student-card p {
-        font-size: calc(0.875rem * var(--card-scale));
+        font-size: calc(0.8125rem * var(--card-scale));
         transition: font-size 0.2s ease;
-      }
-
-      .student-card img {
-        width: calc(3.5rem * var(--card-scale));
-        height: calc(3.5rem * var(--card-scale));
-        transition: width 0.2s ease, height 0.2s ease;
       }
 
       .birthday-tag {
@@ -88,6 +84,7 @@
       /* עיצוב הסליידר */
       input[type=range] {
         -webkit-appearance: none;
+        appearance: none;
         width: 100%;
         background: transparent;
       }
@@ -98,26 +95,56 @@
         width: 100%;
         height: 6px;
         cursor: pointer;
-        background: #e2e8f0;
-        border-radius: 10px;
+        background: #d6d3d1;
+        border-radius: 9999px;
       }
       .dark input[type=range]::-webkit-slider-runnable-track {
-        background: #475569;
+        background: #57534e;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
       }
       input[type=range]::-webkit-slider-thumb {
         height: 18px;
         width: 18px;
         border-radius: 50%;
-        background: #3b82f6;
+        background: #d97706;
         cursor: pointer;
         -webkit-appearance: none;
         margin-top: -6px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      }
+      .dark input[type=range]::-webkit-slider-thumb {
+        background: #f59e0b;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      }
+      input[type=range]::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        cursor: pointer;
+        background: #d6d3d1;
+        border-radius: 9999px;
+      }
+      .dark input[type=range]::-moz-range-track {
+        background: #57534e;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+      }
+      input[type=range]::-moz-range-thumb {
+        height: 18px;
+        width: 18px;
+        border-radius: 50%;
+        background: #d97706;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      }
+      .dark input[type=range]::-moz-range-thumb {
+        background: #f59e0b;
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
       }
     </style>
   </head>
-  <body class="bg-gray-50 text-gray-900 font-sans antialiased selection:bg-blue-100 selection:text-blue-900 touch-manipulation dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200">
+  <body class="bg-[#FAF8F5] text-stone-900 font-sans antialiased selection:bg-amber-100 selection:text-amber-900 touch-manipulation dark:bg-stone-950 dark:text-stone-100 transition-colors duration-200">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
