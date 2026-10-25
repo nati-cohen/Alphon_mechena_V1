@@ -2,10 +2,35 @@
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#FAF8F5" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#FAF8F5" id="theme-color-meta" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FAF8F5" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0a09" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <!-- אתחול מיידי של צבעי המערכת (Status Bar ו-Navigation Bar) למניעת הבהוב לבן -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = saved === 'dark' || (!saved && prefersDark);
+          var root = document.documentElement;
+          if (isDark) {
+            root.classList.add('dark');
+            root.style.colorScheme = 'dark';
+            var meta = document.getElementById('theme-color-meta');
+            if (meta) meta.setAttribute('content', '#0c0a09');
+          } else {
+            root.classList.remove('dark');
+            root.style.colorScheme = 'light';
+            var meta = document.getElementById('theme-color-meta');
+            if (meta) meta.setAttribute('content', '#FAF8F5');
+          }
+        } catch (e) {}
+      })();
+    </script>
     
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/6QtbGKVS/lwgw-mkynh.jpg">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/6QtbGKVS/lwgw-mkynh.jpg">
@@ -50,6 +75,33 @@
       }
     </script>
     <style>
+      /* אחידות צבעי המערכת ברמת ה-HTML וה-Body (צביעת סרגל הסטטוס העליון והפס התחתון) */
+      html {
+        background-color: #FAF8F5;
+        color-scheme: light;
+        height: 100%;
+      }
+      html.dark {
+        background-color: #0c0a09; /* stone-950 */
+        color-scheme: dark;
+      }
+      body {
+        background-color: #FAF8F5;
+        min-height: 100%;
+        min-height: 100dvh;
+      }
+      html.dark body {
+        background-color: #0c0a09;
+      }
+      
+      /* תמיכה במגרעת מכשיר (Notch) ובפס ניווט מחווה תחתון (Gesture Bar) */
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       

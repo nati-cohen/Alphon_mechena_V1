@@ -5,6 +5,7 @@ import {
   HeartIcon, MoonIcon, SunIcon, CakeIcon, FontSizeIcon 
 } from './Icons';
 import { APP_CONFIG } from '../constants';
+import { applyTheme } from '../utils/theme';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,23 +21,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, cardScaleLevel, onSc
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
-  }, []);
+  }, [isOpen]);
 
   const toggleTheme = () => {
-    const root = document.documentElement;
-    try {
-      if (isDark) {
-        root.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-        setIsDark(false);
-      } else {
-        root.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-        setIsDark(true);
-      }
-    } catch (e) {
-      console.warn("Could not save theme to localStorage:", e);
-    }
+    const nextState = !isDark;
+    applyTheme(nextState, true);
+    setIsDark(nextState);
   };
 
   useEffect(() => {

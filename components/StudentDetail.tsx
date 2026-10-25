@@ -120,7 +120,7 @@ export const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
       />
 
       {/* סרגל ניווט עליון */}
-      <header className="bg-[#FAF8F5]/90 dark:bg-stone-950/90 backdrop-blur-md px-4 py-3.5 border-b border-stone-200/80 dark:border-stone-800 flex items-center gap-3 sticky top-0 z-10">
+      <header className="bg-[#FAF8F5]/90 dark:bg-stone-950/90 backdrop-blur-md px-4 pt-[calc(0.875rem+env(safe-area-inset-top,0px))] pb-3.5 border-b border-stone-200/80 dark:border-stone-800 flex items-center gap-3 sticky top-0 z-10">
         <button 
           onClick={() => navigate(-1)}
           className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors text-stone-700 dark:text-stone-300 active:scale-95"
@@ -134,7 +134,7 @@ export const StudentDetail: React.FC<StudentDetailProps> = ({ students }) => {
       </header>
 
       {/* גוף העמוד */}
-      <main className="flex-1 px-5 py-6 flex flex-col items-center max-w-md mx-auto w-full animate-fadeIn pb-24 relative">
+      <main className="flex-1 px-5 py-6 flex flex-col items-center max-w-md mx-auto w-full animate-fadeIn pb-[calc(6rem+env(safe-area-inset-bottom,0px))] relative">
         {/* הודעת חיווי צפה בעת שיתוף/העתקה */}
         {shareFeedback && (
           <div className="fixed top-16 z-50 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 px-4 py-2 rounded-full text-xs font-semibold shadow-xl flex items-center gap-2 animate-bounce">

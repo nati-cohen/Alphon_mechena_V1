@@ -308,7 +308,7 @@ const StudentList: React.FC<StudentListProps> = ({
       />
       
       {/* סרגל עליון מקובע */}
-      <header className="flex-shrink-0 bg-[#FAF8F5]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-4 pt-3.5 pb-3 space-y-3 z-10">
+      <header className="flex-shrink-0 bg-[#FAF8F5]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-4 pt-[calc(0.875rem+env(safe-area-inset-top,0px))] pb-3 space-y-3 z-10">
         <div className="flex items-center justify-between relative min-h-[44px]">
           {/* כפתור תפריט צד */}
           <button 
@@ -382,7 +382,7 @@ const StudentList: React.FC<StudentListProps> = ({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5 pb-24 no-scrollbar overscroll-contain"
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] no-scrollbar overscroll-contain"
       >
         {/* מחוון משיכה לרענון (Pull to Refresh Indicator) */}
         <div 

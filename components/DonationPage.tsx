@@ -49,7 +49,7 @@ https://payboxapp.page.link/ZQ636TG4CYMFGPd48
   return (
     <div className="h-full flex flex-col bg-[#FAF8F5] dark:bg-stone-950 text-stone-900 dark:text-stone-100 transition-colors duration-200">
       {/* סרגל עליון */}
-      <header className="bg-white/90 dark:bg-stone-900/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-4 py-3.5 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+      <header className="bg-white/90 dark:bg-stone-900/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-4 pt-[calc(0.875rem+env(safe-area-inset-top,0px))] pb-3.5 flex items-center justify-between sticky top-0 z-20 shadow-sm">
         <button 
           onClick={() => navigate('/')} 
           className="px-3 py-1.5 rounded-xl text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-95 transition-all flex items-center gap-1.5 text-xs font-semibold"

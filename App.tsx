@@ -13,6 +13,7 @@ import {
   normalizeHebrew, 
   isBirthdayMonthMatch 
 } from './utils/hebrewDate';
+import { initTheme } from './utils/theme';
 
 const App: React.FC = () => {
   // Stale-While-Revalidate: טעינה מיידית ב-0 שניות מהמטמון
@@ -60,18 +61,8 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    // אתחול ערכת נושא (Dark mode)
-    try {
-      const savedTheme = localStorage.getItem('theme');
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    } catch (e) {
-      console.warn("localStorage access denied:", e);
-    }
+    // אתחול ערכת נושא וסנכרון סרגלי מערכת (Status Bar ו-Navigation Bar)
+    initTheme();
 
     // בדיקת ימי הולדת על בסיס הנתונים שכבר במטמון
     if (cached && cached.length > 0) {
@@ -135,7 +126,7 @@ const App: React.FC = () => {
 
   return (
     <HashRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-      <div className="max-w-md mx-auto bg-[#FAF8F5] dark:bg-stone-950 h-screen shadow-2xl overflow-hidden relative transition-colors duration-200">
+      <div className="max-w-md mx-auto bg-[#FAF8F5] dark:bg-stone-950 h-[100dvh] min-h-screen shadow-2xl overflow-hidden relative transition-colors duration-200">
         {birthdayTodayStudents.length > 0 && (
           <BirthdayPopup students={birthdayTodayStudents} />
         )}
